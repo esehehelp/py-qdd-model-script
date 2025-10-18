@@ -11,3 +11,4 @@ wheels/
 .python-version
 uv.lock
 *.json
+py_qdd_model_refactor.md
