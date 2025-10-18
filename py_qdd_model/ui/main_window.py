@@ -159,8 +159,6 @@ class MainWindow(tk.Frame):
         self.results = results
         self.last_result = results
         self.model = model
-        self.report_button.config(state=tk.NORMAL)
-
 
     def save_preset(self):
         from tkinter.filedialog import asksaveasfilename
