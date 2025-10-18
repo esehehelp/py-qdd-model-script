@@ -13,3 +13,5 @@ uv.lock
 *.json
 py_qdd_model_refactor.md
 dist/
+all_sources.md
+combine_sources.py

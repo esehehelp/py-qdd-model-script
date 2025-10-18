@@ -150,11 +150,17 @@ class MainWindow(tk.Frame):
         Z = results[zkey].copy()
         if zkey == 'efficiency':
             Z *= 100
-        
+
         valid_mask = results['voltage'] <= params.bus_voltage
         Z[~valid_mask] = np.nan
 
         self.plot_view.plot(I, RPM, Z, '電流 [A]', '回転数 [RPM]', self.z_var.get(), f'QDDモーター特性マップ: {self.z_var.get()}')
+
+        self.results = results
+        self.last_result = results
+        self.model = model
+        self.report_button.config(state=tk.NORMAL)
+
 
     def save_preset(self):
         from tkinter.filedialog import asksaveasfilename
