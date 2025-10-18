@@ -58,6 +58,50 @@ python run_app.py
 python run_cli.py path/to/your_preset.json --out output/motor_a_results.json
 ```
 
+## ヘルパースクリプト
+
+### 概算巻線設計スクリプト (`ohm_calc.py`)
+
+このスクリプトは、モーターの巻き直しを検討する際に、目標とするKV値に基づいた新しい巻線の仕様（ワイヤー直径、全長、抵抗、インダクタンス）を**概算**するための補助ツールです。
+
+基準となるモーターのパラメータ（内蔵プロファイルまたはカスタムファイル）と、目標モーターのパラメータを比較し、スケーリング則に基づいて計算します。
+
+**使い方**
+
+```bash
+# 書式
+python ohm_calc.py <ターゲットのプリセット.json> --density <電流密度> [--profile <プロファイル名> | --reference <基準プリセット.json>]
+```
+
+- **引数**:
+    - `target_preset_path`: 必須。計算したいモーターのパラメータ（少なくとも`kv`と`peak_current`を含む）を記述したJSONファイルのパス。
+    - `--density`: 必須。目標とする電流密度 (A/mm²)。
+    - `--profile`: オプション。`min`, `small`, `medium`, `large`, `max`から内蔵の基準プロファイルを選択します。
+    - `--reference`: オプション。カスタムのJSONファイルを基準として使用します。
+    - `profile`と`reference`がどちらも指定されない場合、デフォルトで`medium`プロファイルが基準として使われます。
+
+- **実行例**:
+    ```bash
+    # my_motor.json を、smallプロファイルを基準に、電流密度 10.0 A/mm^2 で再計算
+    python ohm_calc.py my_motor.json --density 10.0 --profile small
+    ```
+
+- **出力例**:
+    ```
+    --- Approximate Winding Calculation (with ±10% Reference Uncertainty) ---
+    ... (計算結果) ...
+    CALCULATED PROPERTIES FOR TARGET MOTOR:
+      - Est. Wire Diameter:    0.892 mm (This value is independent of reference uncertainty)
+      - Est. Total Length:     28.10 - 34.34 m
+      - Est. Phase Resistance:  0.5961 - 0.7286 Ohm
+      - Est. Phase Inductance:  177.15 - 216.58 uH
+    ------------------------------------------------------------
+    ```
+
+- **【重要】注意書き**:
+    - このスクリプトの計算結果は、多くの物理的な仮定（例：基準モーターとターゲットモーターの形状が同一である、など）に基づいた**概算値**です。
+    - あくまで設計の「あたりをつける」ための補助ツールとしてご利用ください。
+
 ## テスト
 
 テストを実行するには、まず `pytest` をインストールします。
