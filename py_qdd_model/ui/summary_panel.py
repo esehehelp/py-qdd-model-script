@@ -23,6 +23,9 @@ class SummaryPanel(ttk.Labelframe):
                 self.vars[key] = var
                 row += 1
 
+    def get_values(self):
+        return {k: v.get() for k, v in self.vars.items()}
+
     def update(self, data: dict):
         for k, v in data.items():
             if k in self.vars:

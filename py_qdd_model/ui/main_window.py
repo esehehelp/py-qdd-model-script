@@ -79,10 +79,16 @@ class MainWindow(tk.Frame):
         self.summary_panel.pack(fill='x', pady=8)
 
         btn_frame = ttk.Frame(left)
-        btn_frame.pack(pady=8)
+        btn_frame.pack(pady=8, fill='x')
         ttk.Button(btn_frame, text='計算＆プロット', command=self.run_analysis).pack(side='left', padx=4)
         ttk.Button(btn_frame, text='プリセット読込', command=self.load_preset).pack(side='left', padx=4)
         ttk.Button(btn_frame, text='プリセット保存', command=self.save_preset).pack(side='left', padx=4)
+
+        # --- 出力機能 ---
+        out_frame = ttk.Frame(left)
+        out_frame.pack(pady=8, fill='x')
+        ttk.Button(out_frame, text='サマリー保存', command=self.save_summary).pack(side='left', padx=4)
+        ttk.Button(out_frame, text='PNG保存', command=self.save_plot).pack(side='left', padx=4)
 
         self.plot_view = PlotView(self)
 
@@ -192,3 +198,61 @@ class MainWindow(tk.Frame):
             messagebox.showinfo('読込完了', 'プリセットを読み込みました。')
         except Exception as e:
             messagebox.showerror('読込エラー', f'{e}')
+
+    def save_plot(self):
+        if self.results is None:
+            messagebox.showwarning('警告', '先に「計算＆プロット」を実行してください。')
+            return
+        from tkinter.filedialog import asksaveasfilename
+        fp = asksaveasfilename(
+            defaultextension='.png',
+            filetypes=[('PNG Image', '*.png'), ('All files', '*.*')]
+        )
+        if not fp:
+            return
+        try:
+            self.plot_view.save_png(fp)
+            messagebox.showinfo('保存完了', f'グラフを {fp} に保存しました。')
+        except Exception as e:
+            messagebox.showerror('保存エラー', f'ファイルの保存に失敗しました:\n{e}')
+
+    def save_summary(self):
+        if self.results is None:
+            messagebox.showwarning('警告', '先に「計算＆プロット」を実行してください。')
+            return
+        from tkinter.filedialog import asksaveasfilename
+        from ..utils.io import save_text
+        fp = asksaveasfilename(
+            defaultextension='.txt',
+            filetypes=[('Text File', '*.txt'), ('All files', '*.*')]
+        )
+        if not fp:
+            return
+
+        summary_text = "QDDモーター性能サマリー\n"
+        summary_text += "="*40 + "\n"
+
+        summary_data = self.summary_panel.get_values()
+
+        for section, items in SUMMARY_LAYOUT.items():
+            summary_text += f"\n{section}\n"
+            summary_text += "-"*len(section)*2 + "\n"
+            for display, key in items:
+                label = display.lstrip('└ ')
+                value = summary_data.get(key, '-')
+                summary_text += f"{label:>22s}: {value}\n"
+
+        summary_text += "\n" + "="*40 + "\n"
+        summary_text += "使用したパラメータ:\n\n"
+        params = self.param_panel.get_params()
+        param_defs_flat = {k: v for section in self.param_defs.values() for k, v in section.items()}
+
+        for key, value in params.items():
+            label = param_defs_flat.get(key, [key])[0]
+            summary_text += f"- {label}: {value}\n"
+
+        try:
+            save_text(fp, summary_text)
+            messagebox.showinfo('保存完了', f'サマリーを {fp} に保存しました。')
+        except Exception as e:
+            messagebox.showerror('保存エラー', f'ファイルの保存に失敗しました:\n{e}')
