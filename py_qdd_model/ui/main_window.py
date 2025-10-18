@@ -6,7 +6,8 @@ from ..models.motor_model import MotorModel
 from ..ui.parameter_panel import ParameterPanel
 from ..ui.summary_panel import SummaryPanel
 from ..ui.plot_view import PlotView
-from ..utils.io import save_json, load_json
+from ..utils.io import save_json, load_json, save_text
+from ..analysis.results_analyzer import ResultsAnalyzer
 
 Z_AXIS_MAP = {
     '総合効率 [%]': 'efficiency',
@@ -28,6 +29,10 @@ SUMMARY_LAYOUT = {
     '定格動作時 (連続電流)': [
         ('最大効率', 'rated_eff_val'),
         ('└ 回転数/トルク/パワー', 'rated_point')
+    ],
+    '動作領域': [
+        ('最大回転数 (電圧制限下)', 'max_rpm_val'),
+        ('最大電流 (電圧制限下)', 'max_current_val')
     ]
 }
 
@@ -132,48 +137,18 @@ class MainWindow(tk.Frame):
         results = model.analyze(I, RPM)
         self.results = results
 
-        # サマリー作成
-        valid_mask = results['voltage'] <= params.bus_voltage
-
-        def get_summary(key):
-            if not np.any(valid_mask):
-                return None, None
-            data = np.where(valid_mask, results[key], np.nan)
-            if not np.any(~np.isnan(data)):
-                return None, None
-            idx = np.nanargmax(data)
-            coords = np.unravel_index(idx, data.shape)
-            val = data[coords]
-            return val, coords
-
-        max_eff, eff_coords = get_summary('efficiency')
-        if max_eff is not None:
-            self.summary_panel.update({'max_eff_val': f'{max_eff*100:.1f} %',
-                                       'max_eff_point': f"{results['rpm'][eff_coords]:.0f} RPM / {results['current'][eff_coords]:.1f} A / {results['torque'][eff_coords]:.2f} Nm"})
-
-        max_power, power_coords = get_summary('output_power')
-        if max_power is not None:
-            self.summary_panel.update({'max_power_val': f'{max_power:.1f} W',
-                                       'max_power_point': f"{results['rpm'][power_coords]:.0f} RPM / {results['current'][power_coords]:.1f} A / {results['torque'][power_coords]:.2f} Nm"})
-
-        max_torque, torque_coords = get_summary('torque')
-        if max_torque is not None:
-            self.summary_panel.update({'max_torque_val': f'{max_torque:.2f} Nm',
-                                       'max_torque_point': f"{results['rpm'][torque_coords]:.0f} RPM / {results['current'][torque_coords]:.1f} A"})
-
-        cont_idx = np.argmin(np.abs(current_range - params.continuous_current))
-        rated_mask = valid_mask[:, cont_idx]
-        rated_eff = np.where(rated_mask, results['efficiency'][:, cont_idx], np.nan)
-        if np.any(~np.isnan(rated_eff)):
-            rated_idx = np.nanargmax(rated_eff)
-            self.summary_panel.update({'rated_eff_val': f'{rated_eff[rated_idx]*100:.1f} %',
-                                       'rated_point': f"{RPM[rated_idx, cont_idx]:.0f} RPM / {results['torque'][rated_idx, cont_idx]:.2f} Nm / {results['output_power'][rated_idx, cont_idx]:.1f} W"})
+        # サマリー作成とUI更新
+        analyzer = ResultsAnalyzer(params, results, current_range)
+        summary = analyzer.calculate_summary()
+        self.summary_panel.update(summary)
 
         # Plot
         zkey = Z_AXIS_MAP[self.z_var.get()]
         Z = results[zkey].copy()
         if zkey == 'efficiency':
             Z *= 100
+        
+        valid_mask = results['voltage'] <= params.bus_voltage
         Z[~valid_mask] = np.nan
 
         self.plot_view.plot(I, RPM, Z, '電流 [A]', '回転数 [RPM]', self.z_var.get(), f'QDDモーター特性マップ: {self.z_var.get()}')

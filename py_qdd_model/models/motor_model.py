@@ -69,9 +69,12 @@ class MotorModel:
 
         # 初期抵抗
         phase_resistance = np.full_like(current, self.p.phase_resistance, dtype=float)
+        motor_temp = np.full_like(current, self.p.ambient_temperature, dtype=float)
 
         # === 反復温度収束ループ ===
         for _ in range(iters):
+            prev_motor_temp = motor_temp.copy()
+
             Bmax = self._estimate_flux_density(motor_rpm)
 
             copper_loss = self.copper_model.calculate_loss(current, phase_resistance)
@@ -88,6 +91,10 @@ class MotorModel:
 
             motor_temp = self.p.ambient_temperature + total_loss * self.p.thermal_resistance
             phase_resistance = self.p.phase_resistance * (1 + self.COPPER_TEMP_COEFF * (motor_temp - 25.0))
+
+            # 温度が収束したらループを抜ける
+            if np.all(np.abs(motor_temp - prev_motor_temp) < 0.1):
+                break
 
         # === 最終出力 ===
         copper_loss = self.copper_model.calculate_loss(current, phase_resistance)
