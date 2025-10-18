@@ -2,9 +2,19 @@ from .base_loss import LossModel
 import numpy as np
 
 class IronLossModel(LossModel):
-    def __init__(self, hysteresis_coeff: float = 0.001, eddy_current_coeff: float = 1e-7):
-        self.hysteresis_coeff = hysteresis_coeff
-        self.eddy_current_coeff = eddy_current_coeff
+    """
+    鉄損モデル: Steinmetz式ベース
+    - ヒステリシス損: kh * f * Bmax^α
+    - 渦電流損: ke * f^2 * Bmax^2
+    """
+    def __init__(self, kh: float, ke: float, alpha: float, pole_pairs: int):
+        self.kh = kh
+        self.ke = ke
+        self.alpha = alpha
+        self.pole_pairs = pole_pairs
 
-    def calculate_loss(self, rpm: np.ndarray):
-        return self.hysteresis_coeff * rpm + self.eddy_current_coeff * (rpm ** 2)
+    def calculate_loss(self, rpm: np.ndarray, Bmax: np.ndarray) -> np.ndarray:
+        f = (rpm * self.pole_pairs) / 60.0  # 電気角周波数(Hz)
+        P_h = self.kh * f * (Bmax ** self.alpha)
+        P_e = self.ke * (f ** 2) * (Bmax ** 2)
+        return P_h + P_e
