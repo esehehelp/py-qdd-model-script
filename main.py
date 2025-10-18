@@ -10,16 +10,13 @@ plt.rcParams['font.family'] = 'Meiryo'
 class CopperLossModel:
     """銅損モデル"""
     def __init__(self, params):
-        self.phase_resistance = params['phase_resistance']
         self.wiring_type = params['wiring_type']
 
-    def calculate_loss(self, current):
+    def calculate_loss(self, current, phase_resistance):
         if self.wiring_type == 'star':
-            return 3 * (current ** 2) * self.phase_resistance
+            return 3 * (current ** 2) * phase_resistance
         elif self.wiring_type == 'delta':
-            return (current ** 2) * self.phase_resistance
-        else:
-            return 0
+            return (current ** 2) * phase_resistance
 
 class IronLossModel:
     """鉄損モデル"""
@@ -62,19 +59,48 @@ class MotorModel:
     def __init__(self, params):
         self.params = params
         self.kt = 9.549 / params['kv']
-        self.ke = self.kt
+        self.ke = self.kt  # In SI units, Kt is often equal to Ke
         self.copper_model = CopperLossModel(params)
         self.iron_model = IronLossModel(params)
         self.driver_model = DriverLossModel(params)
         self.gear_model = GearLossModel(params)
+        self.COPPER_TEMP_COEFF = 0.00393  # Copper's temperature coefficient of resistance
 
     def analyze(self, current, rpm):
         """指定された電流とRPMでのモーター特性を解析"""
-        motor_rpm = rpm * self.params['gear_ratio']
+        p = self.params
+        motor_rpm = rpm * p['gear_ratio']
         motor_omega_rad_s = motor_rpm * (2 * np.pi / 60)
         output_omega_rad_s = rpm * (2 * np.pi / 60)
+
+        # --- Thermal Iteration ---
+        # Initialize resistance with the value at 25°C
+        phase_resistance = np.full_like(current, p['phase_resistance'])
         
-        copper_loss = self.copper_model.calculate_loss(current)
+        # Iterate to find steady-state temperature and resistance
+        for _ in range(10): # 10 iterations are usually enough for convergence
+            copper_loss = self.copper_model.calculate_loss(current, phase_resistance)
+            iron_loss = self.iron_model.calculate_loss(motor_rpm)
+            driver_loss = self.driver_model.calculate_loss(current)
+
+            # Estimate motor output power to calculate gear loss
+            gross_torque_est = self.kt * current
+            torque_loss_iron_est = np.divide(iron_loss, motor_omega_rad_s, out=np.zeros_like(motor_omega_rad_s), where=motor_omega_rad_s > 0)
+            motor_output_torque_est = gross_torque_est - torque_loss_iron_est
+            motor_output_power_est = motor_output_torque_est * motor_omega_rad_s
+            gear_loss_est, _ = self.gear_model.calculate_loss(motor_output_power_est)
+
+            total_loss = copper_loss + iron_loss + driver_loss + gear_loss_est
+            
+            # Calculate motor temperature
+            motor_temp = p['ambient_temperature'] + total_loss * p['thermal_resistance']
+            
+            # Update phase resistance based on temperature
+            # R = R_ref * (1 + alpha * (T - T_ref))
+            phase_resistance = p['phase_resistance'] * (1 + self.COPPER_TEMP_COEFF * (motor_temp - 25))
+
+        # --- Final Calculation with converged resistance ---
+        copper_loss = self.copper_model.calculate_loss(current, phase_resistance)
         iron_loss = self.iron_model.calculate_loss(motor_rpm)
         driver_loss = self.driver_model.calculate_loss(current)
 
@@ -90,13 +116,23 @@ class MotorModel:
         total_loss = copper_loss + iron_loss + driver_loss + gear_loss
         input_power = final_output_power + total_loss
         
-        if self.params['wiring_type'] == 'star':
-            resistance_drop = current * (self.params['phase_resistance'] * 2)
+        # --- Voltage Calculation with Inductance ---
+        electrical_omega = motor_omega_rad_s * p['pole_pairs']
+        
+        if p['wiring_type'] == 'star':
+            # Line-to-line values
             back_emf = np.sqrt(3) * self.ke * motor_omega_rad_s
+            resistance_drop = current * (phase_resistance * 2)
+            inductive_v_drop = current * electrical_omega * (p['phase_inductance'] * 2)
         else: # delta
-            resistance_drop = current * (self.params['phase_resistance'] * 2 / 3)
+            # Line-to-line values
             back_emf = self.ke * motor_omega_rad_s
-        voltage = resistance_drop + back_emf
+            resistance_drop = current * (phase_resistance * 2 / 3)
+            inductive_v_drop = current * electrical_omega * (p['phase_inductance'] * 2 / 3)
+
+        # Vector sum for voltage calculation
+        # V = sqrt((V_bemf + V_r)^2 + V_l^2) - a simplification
+        voltage = np.sqrt((back_emf + resistance_drop)**2 + inductive_v_drop**2)
 
         efficiency = np.divide(final_output_power, input_power, out=np.zeros_like(input_power), where=input_power > 0)
         
@@ -159,10 +195,16 @@ class Application(tk.Frame):
         param_defs = {
             "モーター基本特性": {
                 'kv': ('KV値 [rpm/V]', 100.0),
-                'phase_resistance': ('一相あたり抵抗 [Ohm]', 0.1),
+                'phase_resistance': ('一相あたり抵抗 (25℃) [Ohm]', 0.1),
+                'phase_inductance': ('一相あたりインダクタンス [H]', 0.0001),
+                'pole_pairs': ('極対数', 7.0),
                 'wiring_type': ('配線方式', 'star', ['star', 'delta']),
                 'continuous_current': ('連続電流 [A]', 10.0),
                 'peak_current': ('ピーク電流 [A]', 30.0),
+            },
+            "熱モデル": {
+                'ambient_temperature': ('周囲温度 [°C]', 25.0),
+                'thermal_resistance': ('モーター熱抵抗 [°C/W]', 2.0),
             },
             "鉄損モデル": {
                 'hysteresis_coeff': ('ヒステリシス係数 [W/rpm]', 0.001),
@@ -183,19 +225,27 @@ class Application(tk.Frame):
 
         row_counter = 0
         for section, fields in param_defs.items():
-            ttk.Label(params_frame, text=section, font=('TkDefaultFont', 10, 'bold')).grid(row=row_counter, columnspan=2, pady=(10,2), sticky='w')
+            ttk.Label(params_frame, text=section, font=('TkDefaultFont', 10, 'bold')).grid(row=row_counter, columnspan=4, pady=(10,2), sticky='w')
             row_counter += 1
-            for key, value in fields.items():
+            
+            field_items = list(fields.items())
+            for i, (key, value) in enumerate(field_items):
+                row = row_counter + (i // 2)
+                col_offset = (i % 2) * 2
+                
                 label = ttk.Label(params_frame, text=value[0])
-                label.grid(row=row_counter, column=0, sticky='w', padx=5, pady=2)
+                label.grid(row=row, column=col_offset, sticky='w', padx=5, pady=2)
+                
                 if isinstance(value[2], list) if len(value) > 2 else False:
                     self.params[key] = tk.StringVar(value=value[1])
                     widget = ttk.Combobox(params_frame, textvariable=self.params[key], values=value[2], width=10)
                 else:
                     self.params[key] = tk.DoubleVar(value=value[1])
                     widget = ttk.Entry(params_frame, textvariable=self.params[key], width=12)
-                widget.grid(row=row_counter, column=1, sticky='e', padx=5, pady=2)
-                row_counter += 1
+                
+                widget.grid(row=row, column=col_offset + 1, sticky='e', padx=5, pady=2)
+
+            row_counter += (len(field_items) + 1) // 2
 
         ttk.Label(params_frame, text="グラフZ軸(色/高さ)", font=('TkDefaultFont', 10, 'bold')).grid(row=row_counter, columnspan=2, pady=(10,2), sticky='w')
         row_counter += 1
