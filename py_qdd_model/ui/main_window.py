@@ -106,6 +106,9 @@ class MainWindow(tk.Frame):
 
     def _get_params_validated(self):
         raw = self.param_panel.get_params()
+        if raw is None:
+            return None
+            
         try:
             params = MotorParams(**raw)
             return params
@@ -155,16 +158,25 @@ class MainWindow(tk.Frame):
 
     def save_preset(self):
         from tkinter.filedialog import asksaveasfilename
-        fp = asksaveasfilename(defaultextension='.json')
+        fp = asksaveasfilename(
+            defaultextension='.json',
+            filetypes=[('JSONファイル', '*.json'), ('すべてのファイル', '*.*')]
+        )
         if not fp:
             return
+        
         raw = self.param_panel.get_params()
+        if raw is None:
+            return
+
         save_json(fp, raw)
         messagebox.showinfo('保存完了', f'プリセットを {fp} に保存しました。')
 
     def load_preset(self):
         from tkinter.filedialog import askopenfilename
-        fp = askopenfilename()
+        fp = askopenfilename(
+            filetypes=[('JSONファイル', '*.json'), ('すべてのファイル', '*.*')]
+        )
         if not fp:
             return
         try:
@@ -172,7 +184,7 @@ class MainWindow(tk.Frame):
             self.param_panel.set_params(data)
             messagebox.showinfo('読込完了', 'プリセットを読み込みました。')
         except Exception as e:
-            messagebox.showerror('読込エラー', f'{e}')
+            messagebox.showerror('読込エラー', f'ファイルの読み込みに失敗しました。\n有効なJSONプリセットファイルを選択してください。\n\n詳細: {e}')
 
     def save_plot(self):
         if self.results is None:

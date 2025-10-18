@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, messagebox
 from typing import Dict
 
 class ParameterPanel(ttk.Labelframe):
@@ -30,7 +30,21 @@ class ParameterPanel(ttk.Labelframe):
             row += (len(items)+1)//2
 
     def get_params(self):
-        return {k: v.get() for k, v in self.vars.items()}
+        params = {}
+        param_labels = {k: v[0] for section in self.param_defs.values() for k, v in section.items()}
+
+        for key, var in self.vars.items():
+            try:
+                params[key] = var.get()
+            except tk.TclError:
+                label = param_labels.get(key, key)
+                messagebox.showerror(
+                    "入力値エラー",
+                    f"パラメータ「{label}」に不正な値が入力されています。\n"
+                    "数値（整数または小数）を入力してください。"
+                )
+                return None
+        return params
 
     def set_params(self, params: dict):
         for k, v in params.items():
