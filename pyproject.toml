@@ -1,10 +1,20 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [project]
-name = "qdd-motor-model"
+name = "py_qdd_model"
 version = "0.1.0"
-description = "Add your description here"
-readme = "README.md"
-requires-python = ">=3.13"
+description = "Refactored QDD motor modeling tool"
+requires-python = ">=3.11"
 dependencies = [
     "matplotlib>=3.10.7",
     "numpy>=2.3.4",
+    "pydantic>=2.12.3",
+    "pytest>=8.4.2",
 ]
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q"
+pythonpath = "."
