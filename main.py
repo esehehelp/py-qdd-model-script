@@ -4,6 +4,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from tkinter import messagebox
+import json
+import os
 
 plt.rcParams['font.family'] = 'Meiryo'
 
@@ -176,6 +178,20 @@ class Application(tk.Frame):
             ]
         }
         self.create_widgets()
+        self.load_default_preset()
+
+    def load_default_preset(self):
+        """Load default.json at startup if it exists."""
+        default_preset_path = 'default.json'
+        if os.path.exists(default_preset_path):
+            try:
+                with open(default_preset_path, 'r', encoding='utf-8') as f:
+                    loaded_params = json.load(f)
+                for key, value in loaded_params.items():
+                    if key in self.params:
+                        self.params[key].set(value)
+            except Exception as e:
+                print(f"Info: Could not load default preset '{default_preset_path}': {e}")
 
     def create_widgets(self):
         main_frame = ttk.Frame(self, padding=10)
@@ -274,6 +290,13 @@ class Application(tk.Frame):
         calc_button = ttk.Button(left_panel, text="計算＆プロット", command=self.run_analysis)
         calc_button.pack(pady=10)
         
+        preset_frame = ttk.Frame(left_panel)
+        preset_frame.pack(pady=5)
+        load_preset_button = ttk.Button(preset_frame, text="プリセット読込", command=self.load_preset)
+        load_preset_button.pack(side='left', padx=5)
+        save_preset_button = ttk.Button(preset_frame, text="プリセット保存", command=self.save_preset)
+        save_preset_button.pack(side='left', padx=5)
+
         output_frame = ttk.Frame(left_panel)
         output_frame.pack(pady=5)
         png_button = ttk.Button(output_frame, text="PNG出力", command=self.save_as_png)
@@ -413,6 +436,54 @@ class Application(tk.Frame):
         except Exception as e:
             from tkinter.messagebox import showerror
             showerror("保存エラー", f"ファイルの保存中にエラーが発生しました:\n{e}")
+
+    def save_preset(self):
+        """Save the current parameters to a JSON file."""
+        from tkinter.filedialog import asksaveasfilename
+        
+        filepath = asksaveasfilename(
+            defaultextension=".json",
+            filetypes=[("JSONファイル", "*.json"), ("すべてのファイル", "*.*")],
+            title="プリセットを保存"
+        )
+        if not filepath:
+            return
+
+        try:
+            params_to_save = self.get_params()
+            with open(filepath, 'w', encoding='utf-8') as f:
+                json.dump(params_to_save, f, indent=4, ensure_ascii=False)
+            messagebox.showinfo("保存完了", f"プリセットを {filepath} に保存しました。")
+        except Exception as e:
+            messagebox.showerror("保存エラー", f"ファイルの保存中にエラーが発生しました:\n{e}")
+
+    def load_preset(self):
+        """Load parameters from a JSON file."""
+        from tkinter.filedialog import askopenfilename
+
+        filepath = askopenfilename(
+            filetypes=[("JSONファイル", "*.json"), ("すべてのファイル", "*.*")],
+            title="プリセットを開く"
+        )
+        if not filepath:
+            return
+
+        try:
+            with open(filepath, 'r', encoding='utf-8') as f:
+                loaded_params = json.load(f)
+            
+            for key, value in loaded_params.items():
+                if key in self.params:
+                    self.params[key].set(value)
+                else:
+                    print(f"Warning: Loaded parameter '{key}' not found in the GUI.")
+            
+            messagebox.showinfo("読込完了", "プリセットを読み込みました。")
+
+        except json.JSONDecodeError:
+            messagebox.showerror("読込エラー", "JSONファイルとして解析できませんでした。")
+        except Exception as e:
+            messagebox.showerror("読込エラー", f"ファイルの読み込み中にエラーが発生しました:\n{e}")
 
 if __name__ == '__main__':
     root = tk.Tk()
