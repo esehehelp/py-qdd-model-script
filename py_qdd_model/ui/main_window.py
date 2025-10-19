@@ -11,43 +11,45 @@ from ..utils.io import save_json, load_json, save_text
 from ..analysis.results_analyzer import ResultsAnalyzer
 from . import constants as C_UI
 from .. import constants as C_MODEL
+from ..utils.config import settings
 
 class MainWindow(tk.Frame):
     def __init__(self, master=None):
         super().__init__(master)
         self.master = master
         self.master.title(C_UI.WINDOW_TITLE)
+        self.master.geometry(settings["window"]["initial_size"])
         self.pack(fill='both', expand=True)
 
         self.param_defs = C_UI.PARAM_DEFS
 
-        left = ttk.Frame(self, padding=10)
+        left = ttk.Frame(self, padding=settings["layout"]["main_padding"])
         left.pack(side='left', fill='y')
 
         self.param_panel = ParameterPanel(left, self.param_defs)
         self.param_panel.pack(fill='x')
 
         self.summary_panel = SummaryPanel(left, C_UI.SUMMARY_LAYOUT)
-        self.summary_panel.pack(fill='x', pady=8)
+        self.summary_panel.pack(fill='x', pady=settings["layout"]["widget_pady"])
 
         btn_frame = ttk.Frame(left)
-        btn_frame.pack(pady=8, fill='x')
-        ttk.Button(btn_frame, text=C_UI.RUN_BUTTON, command=self.run_analysis).pack(side='left', padx=4)
-        ttk.Button(btn_frame, text=C_UI.LOAD_PRESET_BUTTON, command=self.load_preset).pack(side='left', padx=4)
-        ttk.Button(btn_frame, text=C_UI.SAVE_PRESET_BUTTON, command=self.save_preset).pack(side='left', padx=4)
+        btn_frame.pack(pady=settings["layout"]["widget_pady"], fill='x')
+        ttk.Button(btn_frame, text=C_UI.RUN_BUTTON, command=self.run_analysis).pack(side='left', padx=settings["layout"]["button_padx"])
+        ttk.Button(btn_frame, text=C_UI.LOAD_PRESET_BUTTON, command=self.load_preset).pack(side='left', padx=settings["layout"]["button_padx"])
+        ttk.Button(btn_frame, text=C_UI.SAVE_PRESET_BUTTON, command=self.save_preset).pack(side='left', padx=settings["layout"]["button_padx"])
 
         # --- 出力機能 ---
         out_frame = ttk.Frame(left)
-        out_frame.pack(pady=8, fill='x')
-        ttk.Button(out_frame, text=C_UI.SAVE_SUMMARY_BUTTON, command=self.save_summary).pack(side='left', padx=4)
-        ttk.Button(out_frame, text=C_UI.SAVE_PLOT_BUTTON, command=self.save_plot).pack(side='left', padx=4)
+        out_frame.pack(pady=settings["layout"]["widget_pady"], fill='x')
+        ttk.Button(out_frame, text=C_UI.SAVE_SUMMARY_BUTTON, command=self.save_summary).pack(side='left', padx=settings["layout"]["button_padx"])
+        ttk.Button(out_frame, text=C_UI.SAVE_PLOT_BUTTON, command=self.save_plot).pack(side='left', padx=settings["layout"]["button_padx"])
 
         self.plot_view = PlotView(self)
 
         # Z軸選択
         ttk.Label(left, text=C_UI.Z_AXIS_LABEL).pack()
         self.z_var = tk.StringVar(value=list(C_UI.Z_AXIS_MAP.keys())[0])
-        ttk.Combobox(left, textvariable=self.z_var, values=list(C_UI.Z_AXIS_MAP.keys()), width=20).pack()
+        ttk.Combobox(left, textvariable=self.z_var, values=list(C_UI.Z_AXIS_MAP.keys()), width=settings["layout"]["combobox_width"])
 
         self.results = None
 
@@ -80,8 +82,8 @@ class MainWindow(tk.Frame):
         else:
             theoretical_max_rpm = C_MODEL.ModelDefaults.FALLBACK_MAX_RPM
 
-        current_range = np.linspace(0.1, params.peak_current, C_MODEL.ModelDefaults.ANALYSIS_POINTS)
-        rpm_range = np.linspace(0.1, theoretical_max_rpm * C_MODEL.ModelDefaults.RPM_SAFETY_MARGIN, C_MODEL.ModelDefaults.ANALYSIS_POINTS)
+        current_range = np.linspace(0.1, params.peak_current, settings["analysis"]["grid_points"])
+        rpm_range = np.linspace(0.1, theoretical_max_rpm * settings["analysis"]["rpm_safety_margin"], settings["analysis"]["grid_points"])
         I, RPM = np.meshgrid(current_range, rpm_range)
 
         results = model.analyze(I, RPM)

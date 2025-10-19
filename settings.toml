@@ -1,0 +1,27 @@
+# Global settings for the QDD Motor Modeling Tool
+
+[window]
+# Initial window size in pixels (width x height)
+initial_size = "1280x900"
+
+[layout]
+# Padding for main UI elements
+main_padding = 10
+widget_pady = 8
+button_padx = 4
+combobox_width = 20
+
+[plot]
+# Figure size for display on screen (inches)
+figure_size_x = 8
+figure_size_y = 8
+# DPI for screen display
+display_dpi = 100
+# DPI for saved PNG files
+save_dpi = 300
+
+[analysis]
+# Number of points for the current and RPM axes in the analysis grid
+grid_points = 50
+# Safety margin to add to the theoretical max RPM for the analysis range
+rpm_safety_margin = 1.1

@@ -31,11 +31,5 @@ class ModelDefaults:
     # Convergence threshold for temperature change between iterations. Units: °C
     CONVERGENCE_THRESHOLD = 0.05
     
-    # Safety margin for calculating the maximum RPM for analysis.
-    RPM_SAFETY_MARGIN = 1.1
-    
-    # Default number of points for current and RPM ranges in analysis.
-    ANALYSIS_POINTS = 50
-
     # Fallback maximum RPM if it cannot be calculated from motor parameters.
     FALLBACK_MAX_RPM = 5000

@@ -1,10 +1,13 @@
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from ..utils.plotting import plot_surface
+from ..utils.config import settings
 
 class PlotView:
     def __init__(self, master, fig=None):
-        self.fig = fig or plt.Figure(figsize=(8,8), dpi=100)
+        figsize = (settings["plot"]["figure_size_x"], settings["plot"]["figure_size_y"])
+        dpi = settings["plot"]["display_dpi"]
+        self.fig = fig or plt.Figure(figsize=figsize, dpi=dpi)
         self.canvas = FigureCanvasTkAgg(self.fig, master=master)
         self.canvas.get_tk_widget().pack(side='right', fill='both', expand=True)
         self.ax = None
@@ -16,4 +19,4 @@ class PlotView:
         self.canvas.draw()
 
     def save_png(self, filepath: str):
-        self.fig.savefig(filepath, dpi=300, facecolor='white')
+        self.fig.savefig(filepath, dpi=settings["plot"]["save_dpi"], facecolor='white')
