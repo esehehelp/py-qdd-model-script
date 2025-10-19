@@ -13,6 +13,7 @@ from ..ui.summary_panel import SummaryPanel
 from ..ui.plot_view import PlotView
 from ..utils.io import save_json, load_json, save_text
 from ..analysis.results_analyzer import ResultsAnalyzer
+from ..analysis.parallel_analyzer import run_parallel_analysis
 from ..exceptions import FileOperationError
 from ..models import winding_model as winding_calculator
 from . import constants as C_UI
@@ -56,7 +57,7 @@ class MainWindow(tk.Frame):
         # Z軸選択
         ttk.Label(left, text=C_UI.Plot.Z_AXIS_LABEL).pack()
         self.z_var = tk.StringVar(value=list(C_UI.Plot.Z_AXIS_MAP.keys())[0])
-        ttk.Combobox(left, textvariable=self.z_var, values=list(C_UI.Plot.Z_AXIS_MAP.keys()), width=settings["layout"]["combobox_width"]).pack()
+        ttk.Combobox(left, textvariable=self.z_var, values=list(C_UI.Plot.Z_AXIS_MAP.keys()), width=settings["layout"]["combobox_width"])
 
         self.results = None
 
@@ -76,13 +77,14 @@ class MainWindow(tk.Frame):
         params = self._get_params_validated()
         if params is None:
             return
-        
-        model = MotorModel(params)
 
+        # Create a temporary model just to calculate the theoretical max RPM
+        # Note: This re-creates the model, but it's a lightweight operation.
+        temp_model = MotorModel(params)
         if params.wiring_type == 'star':
-            ke_line = model.ke * np.sqrt(3)
+            ke_line = temp_model.ke * np.sqrt(3)
         else:
-            ke_line = model.ke
+            ke_line = temp_model.ke
 
         if ke_line > 0:
             motor_rpm_unloaded = params.bus_voltage / ke_line * C_MODEL.PhysicsConstants.RAD_PER_SEC_TO_RPM
@@ -92,10 +94,14 @@ class MainWindow(tk.Frame):
 
         current_range = np.linspace(0.1, params.peak_current, settings["analysis"]["grid_points"])
         rpm_range = np.linspace(0.1, theoretical_max_rpm * settings["analysis"]["rpm_safety_margin"], settings["analysis"]["grid_points"])
-        I, RPM = np.meshgrid(current_range, rpm_range)
-
-        results = model.analyze(I, RPM)
+        
+        # Run the analysis in parallel
+        # We pass a copy of params because the model will modify it (inductance conversion)
+        results = run_parallel_analysis(params.copy(deep=True), current_range, rpm_range)
         self.results = results
+
+        # Recreate meshgrid for plotting and analysis summary
+        I, RPM = np.meshgrid(current_range, rpm_range)
 
         # サマリー作成とUI更新
         analyzer = ResultsAnalyzer(params, results, current_range)
@@ -114,9 +120,9 @@ class MainWindow(tk.Frame):
 
         self.plot_view.plot(I, RPM, Z, C_UI.Plot.X_AXIS_LABEL, C_UI.Plot.Y_AXIS_LABEL, z_selection, C_UI.Plot.PLOT_TITLE.format(z_selection))
 
-        self.results = results
         self.last_result = results
-        self.model = model
+        # self.model is no longer a single instance, so we nullify it.
+        self.model = None
 
     def run_winding_calculation(self):
         target_params = self.param_panel.get_params()
@@ -149,7 +155,17 @@ class MainWindow(tk.Frame):
             ref_name = "built-in 'medium' profile"
 
         try:
-            results = winding_calculator.estimate_new_winding(target_params, reference_params, density)
+            # Ensure all params passed to the model are in SI units (Henries)
+            calc_target_params = target_params.copy()
+            if 'phase_inductance' in calc_target_params:
+                calc_target_params['phase_inductance'] /= 1e6 # uH -> H
+
+            calc_ref_params = reference_params.copy()
+            # Presets loaded from file are in uH, built-in profiles are in H.
+            if use_custom_ref and 'phase_inductance' in calc_ref_params:
+                calc_ref_params['phase_inductance'] /= 1e6 # uH -> H
+
+            results = winding_calculator.estimate_new_winding(calc_target_params, calc_ref_params, density)
         except KeyError as e:
             messagebox.showerror(C_UI.Dialog.Title.ERROR, C_UI.Dialog.Message.WINDING_CALC_KEY_ERROR.format(e))
             return

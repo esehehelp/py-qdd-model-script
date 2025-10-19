@@ -28,5 +28,5 @@ rpm_safety_margin = 1.0
 
 [language]
 # Set the UI language. Supported: "jp", "en"
-lang = "en"
+lang = "jp"
 
