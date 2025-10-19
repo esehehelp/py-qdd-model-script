@@ -4,7 +4,7 @@ from typing import Literal
 class MotorParams(BaseModel):
     kv: float = Field(..., gt=0)
     phase_resistance: float = Field(..., ge=0)
-    phase_inductance: float = Field(..., ge=0)
+    phase_inductance: float = 100.0
     pole_pairs: int = Field(..., ge=1)
     wiring_type: Literal['star', 'delta'] = 'star'
     continuous_current: float = Field(..., ge=0)

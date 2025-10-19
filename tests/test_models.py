@@ -22,10 +22,11 @@ def test_iron_loss():
 @pytest.fixture
 def default_model():
     """Provides a default MotorModel instance for testing."""
+    # Params are created with inductance in uH, as if they came from the UI
     params = MotorParams(
         kv=100.0,
         phase_resistance=0.1,
-        phase_inductance=1e-4,
+        phase_inductance=100.0, # uH
         pole_pairs=7,
         wiring_type='star',
         continuous_current=15.0,
@@ -33,8 +34,9 @@ def default_model():
         thermal_resistance=2.0, # °C/W
         ambient_temperature=25.0,
         bus_voltage=48.0,
-        gear_ratio=9.0 # Explicitly set for clarity
+        gear_ratio=9.0
     )
+    # The MotorModel __init__ is responsible for converting uH to H for internal use
     return MotorModel(params)
 
 def test_motor_analyze_shapes(default_model):
@@ -64,7 +66,6 @@ def test_thermal_convergence_high_current(default_model):
     res = model.analyze(current, rpm)
     final_temp = res['motor_temp'][0, 0]
     # Assert that the temperature has risen by a plausible amount (e.g., > 10°C)
-    # This value depends heavily on thermal_resistance, so this is a basic check
     assert final_temp > model.p.ambient_temperature + 10.0
 
 def test_voltage_limit_boundary(default_model):
@@ -121,3 +122,22 @@ def test_efficiency_peak_location(default_model):
     # peak_idx[0] is the index for RPM, peak_idx[1] is for Current
     assert peak_idx[0] > 0  # Not at the lowest RPM
     assert peak_idx[1] > 0  # Not at the lowest Current
+
+def test_motor_model_inductance_conversion():
+    """Tests that the model correctly converts inductance from uH to H on initialization."""
+    # 1. Create params with inductance in uH, as it comes from the UI
+    params_in_uh = MotorParams(
+        kv=100.0,
+        phase_resistance=0.1,
+        pole_pairs=7,
+        continuous_current=10.0,
+        peak_current=30.0,
+        phase_inductance=150.0  # The value being tested
+    )
+    
+    # 2. Create the model
+    model = MotorModel(params_in_uh)
+    
+    # 3. Assert that the model's internal value is now in Henries
+    expected_h = 150e-6
+    assert model.p.phase_inductance == pytest.approx(expected_h)

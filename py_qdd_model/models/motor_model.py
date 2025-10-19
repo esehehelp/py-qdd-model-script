@@ -12,6 +12,9 @@ class MotorModel:
 
     def __init__(self, params: MotorParams):
         self.p = params
+        # Convert inductance from uH (application-wide unit) to H (physics unit)
+        self.p.phase_inductance /= 1e6
+
         self.kt = C.PhysicsConstants.RAD_PER_SEC_TO_RPM / self.p.kv
         self.ke = self.kt
         self.copper_model = CopperLossModel(self.p.wiring_type)
