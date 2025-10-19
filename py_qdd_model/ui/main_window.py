@@ -154,15 +154,20 @@ class MainWindow(tk.Frame):
             messagebox.showerror(C_UI.Dialog.Title.ERROR, C_UI.Dialog.Message.WINDING_CALC_KEY_ERROR.format(e))
             return
 
+        # Convert result from SI (H) back to UI unit (uH)
+        result_inductance_uH = results["inductance"] * 1e6
+
+        # Update UI with uH value
         self.param_panel.set_params({
             "phase_resistance": results["resistance"],
-            "phase_inductance": results["inductance"]
+            "phase_inductance": result_inductance_uH
         })
 
+        # Show confirmation dialog with all results
         result_message = C_UI.Dialog.Message.WINDING_CALC_COMPLETE.format(
             ref_name,
             results['resistance'],
-            results['inductance'],
+            result_inductance_uH,
             results['diameter_mm'],
             results['length']
         )
