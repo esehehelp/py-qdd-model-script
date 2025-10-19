@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from ..utils.plotting import plot_surface
 from ..utils.config import settings
+from ..exceptions import FileOperationError
 
 class PlotView:
     def __init__(self, master, fig=None):
@@ -19,4 +20,7 @@ class PlotView:
         self.canvas.draw()
 
     def save_png(self, filepath: str):
-        self.fig.savefig(filepath, dpi=settings["plot"]["save_dpi"], facecolor='white')
+        try:
+            self.fig.savefig(filepath, dpi=settings["plot"]["save_dpi"], facecolor='white')
+        except IOError as e:
+            raise FileOperationError(f"Failed to save PNG to {filepath}: {e}") from e

@@ -2,6 +2,7 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 import numpy as np
+from pydantic import ValidationError
 from ..schema import MotorParams
 from ..models.motor_model import MotorModel
 from ..ui.parameter_panel import ParameterPanel
@@ -9,6 +10,7 @@ from ..ui.summary_panel import SummaryPanel
 from ..ui.plot_view import PlotView
 from ..utils.io import save_json, load_json, save_text
 from ..analysis.results_analyzer import ResultsAnalyzer
+from ..exceptions import FileOperationError
 from . import constants as C_UI
 from .. import constants as C_MODEL
 from ..utils.config import settings
@@ -49,7 +51,7 @@ class MainWindow(tk.Frame):
         # Z軸選択
         ttk.Label(left, text=C_UI.Z_AXIS_LABEL).pack()
         self.z_var = tk.StringVar(value=list(C_UI.Z_AXIS_MAP.keys())[0])
-        ttk.Combobox(left, textvariable=self.z_var, values=list(C_UI.Z_AXIS_MAP.keys()), width=settings["layout"]["combobox_width"])
+        ttk.Combobox(left, textvariable=self.z_var, values=list(C_UI.Z_AXIS_MAP.keys()), width=settings["layout"]["combobox_width"]).pack()
 
         self.results = None
 
@@ -61,7 +63,7 @@ class MainWindow(tk.Frame):
         try:
             params = MotorParams(**raw)
             return params
-        except Exception as e:
+        except ValidationError as e:
             messagebox.showerror(C_UI.INPUT_ERROR_TITLE, C_UI.PARAMS_VALIDATION_FAILED_MSG.format(e))
             return None
 
@@ -122,9 +124,12 @@ class MainWindow(tk.Frame):
         raw = self.param_panel.get_params()
         if raw is None:
             return
-
-        save_json(fp, raw)
-        messagebox.showinfo(C_UI.SAVE_COMPLETE_TITLE, C_UI.PRESET_SAVED_MSG.format(fp))
+        
+        try:
+            save_json(fp, raw)
+            messagebox.showinfo(C_UI.SAVE_COMPLETE_TITLE, C_UI.PRESET_SAVED_MSG.format(fp))
+        except FileOperationError as e:
+            messagebox.showerror(C_UI.SAVE_ERROR_TITLE, str(e))
 
     def load_preset(self):
         from tkinter.filedialog import askopenfilename
@@ -137,7 +142,7 @@ class MainWindow(tk.Frame):
             data = load_json(fp)
             self.param_panel.set_params(data)
             messagebox.showinfo(C_UI.LOAD_COMPLETE_TITLE, C_UI.PRESET_LOADED_MSG)
-        except Exception as e:
+        except FileOperationError as e:
             messagebox.showerror(C_UI.LOAD_ERROR_TITLE, C_UI.PRESET_LOAD_FAILED_MSG.format(e))
 
     def save_plot(self):
@@ -154,15 +159,14 @@ class MainWindow(tk.Frame):
         try:
             self.plot_view.save_png(fp)
             messagebox.showinfo(C_UI.SAVE_COMPLETE_TITLE, C_UI.PLOT_SAVED_MSG.format(fp))
-        except Exception as e:
-            messagebox.showerror(C_UI.SAVE_ERROR_TITLE, C_UI.PLOT_SAVE_FAILED_MSG.format(e))
+        except FileOperationError as e:
+            messagebox.showerror(C_UI.SAVE_ERROR_TITLE, str(e))
 
     def save_summary(self):
         if self.results is None:
             messagebox.showwarning(C_UI.WARNING_TITLE, C_UI.RUN_FIRST_MSG)
             return
         from tkinter.filedialog import asksaveasfilename
-        from ..utils.io import save_text
         fp = asksaveasfilename(
             defaultextension='.txt',
             filetypes=[C_UI.TXT_FILE_TYPE, C_UI.ALL_FILES_TYPE]
@@ -195,5 +199,5 @@ class MainWindow(tk.Frame):
         try:
             save_text(fp, summary_text)
             messagebox.showinfo(C_UI.SAVE_COMPLETE_TITLE, C_UI.SUMMARY_SAVED_MSG.format(fp))
-        except Exception as e:
-            messagebox.showerror(C_UI.SAVE_ERROR_TITLE, C_UI.SUMMARY_SAVE_FAILED_MSG.format(e))
+        except FileOperationError as e:
+            messagebox.showerror(C_UI.SAVE_ERROR_TITLE, str(e))
