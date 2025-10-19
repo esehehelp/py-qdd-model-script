@@ -20,6 +20,9 @@ DEFAULT_SETTINGS = {
     "analysis": {
         "grid_points": 50,
         "rpm_safety_margin": 1.1,
+    },
+    "language": {
+        "lang": "jp"
     }
 }
 

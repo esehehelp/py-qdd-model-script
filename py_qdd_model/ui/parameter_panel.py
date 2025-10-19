@@ -1,10 +1,11 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 from typing import Dict
+from ..i18n.translator import t
 
 class ParameterPanel(ttk.Labelframe):
     def __init__(self, master, param_defs: Dict, *args, **kwargs):
-        super().__init__(master, *args, text='モーターパラメータ', **kwargs)
+        super().__init__(master, *args, text=t("ParameterPanel.TITLE"), **kwargs)
         self.param_defs = param_defs
         self.vars: Dict[str, tk.Variable] = {}
         self._build()
@@ -39,9 +40,8 @@ class ParameterPanel(ttk.Labelframe):
             except tk.TclError:
                 label = param_labels.get(key, key)
                 messagebox.showerror(
-                    "入力値エラー",
-                    f"パラメータ「{label}」に不正な値が入力されています。\n"
-                    "数値（整数または小数）を入力してください。"
+                    t("Dialog.Title.INPUT_ERROR"),
+                    t("Dialog.Message.INVALID_NUMERIC_VALUE").format(label)
                 )
                 return None
         return params

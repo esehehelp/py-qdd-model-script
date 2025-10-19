@@ -1,0 +1,121 @@
+{
+  "WINDOW_TITLE": "QDD Motor Performance Modeling Tool",
+  "SummaryPanel": {
+    "TITLE": "Summary"
+  },
+  "ParameterPanel": {
+    "TITLE": "Motor Parameters"
+  },
+  "Plot": {
+    "X_AXIS_LABEL": "Current [A]",
+    "Y_AXIS_LABEL": "RPM",
+    "Z_AXIS_LABEL": "Z-Axis",
+    "PLOT_TITLE": "QDD Motor Performance Map: {}",
+    "Z_AXIS_MAP": {
+      "efficiency": "Overall Efficiency [%]",
+      "torque": "Torque [Nm]",
+      "output_power": "Output Power [W]",
+      "voltage": "Required Voltage [V]",
+      "total_loss": "Total Loss [W]"
+    }
+  },
+  "Layout": {
+    "PARAM_DEFS": {
+      "groups": {
+        "motor": "Motor Basic Properties",
+        "thermal": "Thermal Model",
+        "iron": "Iron Loss Model",
+        "driver": "Driver Loss Model",
+        "gear": "Gear Loss Model",
+        "operating": "Operating Conditions"
+      },
+      "labels": {
+        "kv": "KV Rating [rpm/V]",
+        "phase_resistance": "Phase Resistance (25°C) [Ohm]",
+        "phase_inductance": "Phase Inductance [uH]",
+        "pole_pairs": "Pole Pairs",
+        "wiring_type": "Wiring Type",
+        "continuous_current": "Continuous Current [A]",
+        "peak_current": "Peak Current [A]",
+        "ambient_temperature": "Ambient Temperature [°C]",
+        "thermal_resistance": "Motor Thermal Resistance [°C/W]",
+        "hysteresis_coeff": "Hysteresis Coefficient [W/rpm]",
+        "eddy_current_coeff": "Eddy Current Coefficient [W/rpm^2]",
+        "driver_on_resistance": "Driver ON-Resistance [Ohm]",
+        "driver_fixed_loss": "Driver Fixed Loss [W]",
+        "gear_ratio": "Gear Ratio",
+        "gear_efficiency": "Gear Efficiency",
+        "bus_voltage": "Bus Voltage [V]"
+      }
+    },
+    "SUMMARY_LAYOUT": {
+      "groups": {
+        "peak": "Peak Performance",
+        "rated": "Rated Operation (Continuous Current)",
+        "envelope": "Operating Envelope"
+      },
+      "labels": {
+        "max_eff": "Max Overall Efficiency",
+        "max_eff_point": "└ RPM / Current / Torque",
+        "max_power": "Max Output Power",
+        "max_power_point": "└ RPM / Current / Torque",
+        "max_torque": "Max Torque",
+        "max_torque_point": "└ RPM / Current",
+        "rated_eff": "Max Efficiency",
+        "rated_point": "└ RPM / Torque / Power",
+        "max_rpm": "Max RPM (Under Voltage Limit)",
+        "max_current": "Max Current (Under Voltage Limit)"
+      }
+    }
+  },
+  "Buttons": {
+    "RUN": "Calculate & Plot",
+    "LOAD_PRESET": "LoadPreset",
+    "SAVE_PRESET": "SavePreset",
+    "SAVE_SUMMARY": "Save Summary",
+    "SAVE_PLOT": "Save PNG",
+    "WINDING_CALC": "Winding Calc"
+  },
+  "Dialog": {
+    "Title": {
+      "INPUT_ERROR": "Input Error",
+      "SAVE_COMPLETE": "Save Complete",
+      "LOAD_COMPLETE": "Load Complete",
+      "LOAD_ERROR": "Load Error",
+      "SAVE_ERROR": "Save Error",
+      "WARNING": "Warning",
+      "ERROR": "Error",
+      "WINDING_CALC_COMPLETE": "Winding Calculation Complete",
+      "WINDING_CALC_REF": "Reference Motor",
+      "WINDING_CALC_INPUT": "Input"
+    },
+    "Message": {
+      "PARAMS_VALIDATION_FAILED": "Parameter validation failed:\n{}",
+      "PRESET_SAVED": "Preset saved to {}.",
+      "PRESET_LOADED": "Preset loaded successfully.",
+      "PRESET_LOAD_FAILED": "Failed to load file.\nPlease select a valid JSON preset file.\n\nDetails: {}",
+      "PLOT_SAVE_FAILED": "Failed to save plot:\n{}",
+      "SUMMARY_SAVE_FAILED": "Failed to save summary:\n{}",
+      "PLOT_SAVED": "Plot saved to {}.",
+      "SUMMARY_SAVED": "Summary saved to {}.",
+      "RUN_FIRST": "Please run \"Calculate & Plot\" first.",
+      "WINDING_CALC_MISSING_PARAMS": "Please set 'KV Rating' and 'Peak Current' before calculation.",
+      "WINDING_CALC_DENSITY_PROMPT": "Enter Target Current Density (A/mm²):",
+      "WINDING_CALC_USE_CUSTOM_REF": "Use a custom reference motor preset file?\n\n(If not, a default 'medium' profile will be used.)",
+      "WINDING_CALC_LOAD_REF_ERROR": "Failed to load reference file: {} ",
+      "WINDING_CALC_KEY_ERROR": "Missing required key in parameters: {} ",
+      "INVALID_NUMERIC_VALUE": "Invalid value entered for parameter \"{}\".\nPlease enter a numeric value (integer or decimal).",
+      "WINDING_CALC_COMPLETE": "Calculation based on reference: {}\n\nUpdated Parameters:\n  - Phase Resistance: {:.4f} Ohm\n  - Phase Inductance: {:.2f} uH\n\nInformational Values:\n  - Est. Wire Diameter: {:.3f} mm\n  - Est. Total Length: {:.2f} m"
+    }
+  },
+  "FileDialog": {
+    "JSON": "JSON files",
+    "PNG": "PNG Image",
+    "TXT": "Text File",
+    "ALL": "All files"
+  },
+  "SummaryReport": {
+    "TITLE": "QDD Motor Performance Summary",
+    "PARAMS_HEADER": "Parameters Used:"
+  }
+}

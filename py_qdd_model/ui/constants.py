@@ -1,124 +1,122 @@
-# -*- coding: utf-8 -*- 
+# -*- coding: utf-8 -*-
 
-"""UI-related constants, organized by category."""
+"""
+This module builds the UI constants dynamically based on the selected language.
+It imports the translator function `t` and uses it to populate the data structures
+that the UI components rely on.
+"""
 
-WINDOW_TITLE = 'QDDモーター特性モデリングツール'
+from ..i18n.translator import t
+
+WINDOW_TITLE = t("WINDOW_TITLE")
 
 class Plot:
-    X_AXIS_LABEL = '電流 [A]'
-    Y_AXIS_LABEL = '回転数 [RPM]'
-    Z_AXIS_LABEL = 'グラフZ軸'
-    PLOT_TITLE = 'QDDモーター特性マップ: {}'
+    X_AXIS_LABEL = t("Plot.X_AXIS_LABEL")
+    Y_AXIS_LABEL = t("Plot.Y_AXIS_LABEL")
+    Z_AXIS_LABEL = t("Plot.Z_AXIS_LABEL")
+    PLOT_TITLE = t("Plot.PLOT_TITLE")
     Z_AXIS_MAP = {
-        '総合効率 [%]': 'efficiency',
-        'トルク [Nm]': 'torque',
-        '出力パワー [W]': 'output_power',
-        '必要電圧 [V]': 'voltage',
-        '全損失 [W]': 'total_loss'
+        t("Plot.Z_AXIS_MAP.efficiency"): "efficiency",
+        t("Plot.Z_AXIS_MAP.torque"): "torque",
+        t("Plot.Z_AXIS_MAP.output_power"): "output_power",
+        t("Plot.Z_AXIS_MAP.voltage"): "voltage",
+        t("Plot.Z_AXIS_MAP.total_loss"): "total_loss",
     }
 
 class Layout:
     PARAM_DEFS = {
-        'モーター基本特性': {
-            'kv': ('KV値 [rpm/V]', 100.0),
-            'phase_resistance': ('一相あたり抵抗 (25℃) [Ohm]', 0.1),
-            'phase_inductance': ('一相あたりインダクタンス [uH]', 100.0),
-            'pole_pairs': ('極対数', 7),
-            'wiring_type': ('配線方式', 'star', ['star','delta']),
-            'continuous_current': ('連続電流 [A]', 10.0),
-            'peak_current': ('ピーク電流 [A]', 30.0)
+        t("Layout.PARAM_DEFS.groups.motor"): {
+            'kv': (t("Layout.PARAM_DEFS.labels.kv"), 100.0),
+            'phase_resistance': (t("Layout.PARAM_DEFS.labels.phase_resistance"), 0.1),
+            'phase_inductance': (t("Layout.PARAM_DEFS.labels.phase_inductance"), 100.0),
+            'pole_pairs': (t("Layout.PARAM_DEFS.labels.pole_pairs"), 7),
+            'wiring_type': (t("Layout.PARAM_DEFS.labels.wiring_type"), 'star', ['star','delta']),
+            'continuous_current': (t("Layout.PARAM_DEFS.labels.continuous_current"), 10.0),
+            'peak_current': (t("Layout.PARAM_DEFS.labels.peak_current"), 30.0)
         },
-        '熱モデル': {
-            'ambient_temperature': ('周囲温度 [°C]', 25.0),
-            'thermal_resistance': ('モーター熱抵抗 [°C/W]', 2.0)
+        t("Layout.PARAM_DEFS.groups.thermal"): {
+            'ambient_temperature': (t("Layout.PARAM_DEFS.labels.ambient_temperature"), 25.0),
+            'thermal_resistance': (t("Layout.PARAM_DEFS.labels.thermal_resistance"), 2.0)
         },
-        '鉄損モデル': {
-            'hysteresis_coeff': ('ヒステリシス係数 [W/rpm]', 0.001),
-            'eddy_current_coeff': ('渦電流係数 [W/rpm^2]', 1e-7)
+        t("Layout.PARAM_DEFS.groups.iron"): {
+            'hysteresis_coeff': (t("Layout.PARAM_DEFS.labels.hysteresis_coeff"), 0.001),
+            'eddy_current_coeff': (t("Layout.PARAM_DEFS.labels.eddy_current_coeff"), 1e-7)
         },
-        'ドライバ損失モデル': {
-            'driver_on_resistance': ('ドライバON抵抗 [Ohm]', 0.005),
-            'driver_fixed_loss': ('ドライバ固定損失 [W]', 2.0)
+        t("Layout.PARAM_DEFS.groups.driver"): {
+            'driver_on_resistance': (t("Layout.PARAM_DEFS.labels.driver_on_resistance"), 0.005),
+            'driver_fixed_loss': (t("Layout.PARAM_DEFS.labels.driver_fixed_loss"), 2.0)
         },
-        'ギア損失モデル': {
-            'gear_ratio': ('減速比', 9.0),
-            'gear_efficiency': ('ギア効率', 0.95)
+        t("Layout.PARAM_DEFS.groups.gear"): {
+            'gear_ratio': (t("Layout.PARAM_DEFS.labels.gear_ratio"), 9.0),
+            'gear_efficiency': (t("Layout.PARAM_DEFS.labels.gear_efficiency"), 0.95)
         },
-        '動作条件': {
-            'bus_voltage': ('バス電圧 [V]', 48.0)
+        t("Layout.PARAM_DEFS.groups.operating"): {
+            'bus_voltage': (t("Layout.PARAM_DEFS.labels.bus_voltage"), 48.0)
         }
     }
     SUMMARY_LAYOUT = {
-        'ピーク性能': [
-            ('最大総合効率', 'max_eff_val'),
-            ('└ 回転数/電流/トルク', 'max_eff_point'),
-            ('最大出力パワー', 'max_power_val'),
-            ('└ 回転数/電流/トルク', 'max_power_point'),
-            ('最大トルク', 'max_torque_val'),
-            ('└ 回転数/電流', 'max_torque_point')
+        t("Layout.SUMMARY_LAYOUT.groups.peak"): [
+            (t("Layout.SUMMARY_LAYOUT.labels.max_eff"), 'max_eff_val'),
+            (t("Layout.SUMMARY_LAYOUT.labels.max_eff_point"), 'max_eff_point'),
+            (t("Layout.SUMMARY_LAYOUT.labels.max_power"), 'max_power_val'),
+            (t("Layout.SUMMARY_LAYOUT.labels.max_power_point"), 'max_power_point'),
+            (t("Layout.SUMMARY_LAYOUT.labels.max_torque"), 'max_torque_val'),
+            (t("Layout.SUMMARY_LAYOUT.labels.max_torque_point"), 'max_torque_point')
         ],
-        '定格動作時 (連続電流)': [
-            ('最大効率', 'rated_eff_val'),
-            ('└ 回転数/トルク/パワー', 'rated_point')
+        t("Layout.SUMMARY_LAYOUT.groups.rated"): [
+            (t("Layout.SUMMARY_LAYOUT.labels.rated_eff"), 'rated_eff_val'),
+            (t("Layout.SUMMARY_LAYOUT.labels.rated_point"), 'rated_point')
         ],
-        '動作領域': [
-            ('最大回転数 (電圧制限下)', 'max_rpm_val'),
-            ('最大電流 (電圧制限下)', 'max_current_val')
+        t("Layout.SUMMARY_LAYOUT.groups.envelope"): [
+            (t("Layout.SUMMARY_LAYOUT.labels.max_rpm"), 'max_rpm_val'),
+            (t("Layout.SUMMARY_LAYOUT.labels.max_current"), 'max_current_val')
         ]
     }
 
 class Buttons:
-    RUN = '計算＆プロット'
-    LOAD_PRESET = 'プリセット読込'
-    SAVE_PRESET = 'プリセット保存'
-    SAVE_SUMMARY = 'サマリー保存'
-    SAVE_PLOT = 'PNG保存'
-    WINDING_CALC = '巻線計算'
+    RUN = t("Buttons.RUN")
+    LOAD_PRESET = t("Buttons.LOAD_PRESET")
+    SAVE_PRESET = t("Buttons.SAVE_PRESET")
+    SAVE_SUMMARY = t("Buttons.SAVE_SUMMARY")
+    SAVE_PLOT = t("Buttons.SAVE_PLOT")
+    WINDING_CALC = t("Buttons.WINDING_CALC")
 
 class Dialog:
     class Title:
-        INPUT_ERROR = '入力エラー'
-        SAVE_COMPLETE = '保存完了'
-        LOAD_COMPLETE = '読込完了'
-        LOAD_ERROR = '読込エラー'
-        SAVE_ERROR = '保存エラー'
-        WARNING = '警告'
-        ERROR = 'エラー'
-        WINDING_CALC_COMPLETE = '巻線計算完了'
-        WINDING_CALC_REF = '基準モーター'
-        WINDING_CALC_INPUT = '入力'
+        INPUT_ERROR = t("Dialog.Title.INPUT_ERROR")
+        SAVE_COMPLETE = t("Dialog.Title.SAVE_COMPLETE")
+        LOAD_COMPLETE = t("Dialog.Title.LOAD_COMPLETE")
+        LOAD_ERROR = t("Dialog.Title.LOAD_ERROR")
+        SAVE_ERROR = t("Dialog.Title.SAVE_ERROR")
+        WARNING = t("Dialog.Title.WARNING")
+        ERROR = t("Dialog.Title.ERROR")
+        WINDING_CALC_COMPLETE = t("Dialog.Title.WINDING_CALC_COMPLETE")
+        WINDING_CALC_REF = t("Dialog.Title.WINDING_CALC_REF")
+        WINDING_CALC_INPUT = t("Dialog.Title.WINDING_CALC_INPUT")
 
     class Message:
-        PARAMS_VALIDATION_FAILED = 'パラメータ検証に失敗しました:\n{}'
-        PRESET_SAVED = 'プリセットを {} に保存しました。'
-        PRESET_LOADED = 'プリセットを読み込みました。'
-        PRESET_LOAD_FAILED = 'ファイルの読み込みに失敗しました。\n有効なJSONプリセットファイルを選択してください。\n\n詳細: {}'
-        PLOT_SAVE_FAILED = 'グラフの保存に失敗しました:\n{}'
-        SUMMARY_SAVE_FAILED = 'サマリーの保存に失敗しました:\n{}'
-        PLOT_SAVED = 'グラフを {} に保存しました。'
-        SUMMARY_SAVED = 'サマリーを {} に保存しました。'
-        RUN_FIRST = '先に「計算＆プロット」を実行してください。'
-        WINDING_CALC_MISSING_PARAMS = '計算の前に「KV値」と「ピーク電流」を設定してください。'
-        WINDING_CALC_DENSITY_PROMPT = '目標とする電流密度 (A/mm²) を入力してください:'
-        WINDING_CALC_USE_CUSTOM_REF = 'カスタムの基準モータープリセットを使用しますか？\n\n（「いいえ」を選択すると、デフォルトの\'medium\'プロファイルが使用されます。）'
-        WINDING_CALC_LOAD_REF_ERROR = '基準ファイルの読み込みに失敗しました: {} '
-        WINDING_CALC_KEY_ERROR = 'パラメータに必要なキーがありません: {} '
-        WINDING_CALC_COMPLETE = (
-            "計算基準: {}\n\n"
-            "更新されたパラメータ:\n"
-            "  - 一相あたり抵抗: {:.4f} Ohm\n"
-            "  - 一相あたりインダクタンス: {:.2f} uH\n\n"
-            "参考値:\n"
-            "  - 推定ワイヤ直径: {:.3f} mm\n"
-            "  - 推定全長: {:.2f} m"
-        )
+        PARAMS_VALIDATION_FAILED = t("Dialog.Message.PARAMS_VALIDATION_FAILED")
+        PRESET_SAVED = t("Dialog.Message.PRESET_SAVED")
+        PRESET_LOADED = t("Dialog.Message.PRESET_LOADED")
+        PRESET_LOAD_FAILED = t("Dialog.Message.PRESET_LOAD_FAILED")
+        PLOT_SAVE_FAILED = t("Dialog.Message.PLOT_SAVE_FAILED")
+        SUMMARY_SAVE_FAILED = t("Dialog.Message.SUMMARY_SAVE_FAILED")
+        PLOT_SAVED = t("Dialog.Message.PLOT_SAVED")
+        SUMMARY_SAVED = t("Dialog.Message.SUMMARY_SAVED")
+        RUN_FIRST = t("Dialog.Message.RUN_FIRST")
+        WINDING_CALC_MISSING_PARAMS = t("Dialog.Message.WINDING_CALC_MISSING_PARAMS")
+        WINDING_CALC_DENSITY_PROMPT = t("Dialog.Message.WINDING_CALC_DENSITY_PROMPT")
+        WINDING_CALC_USE_CUSTOM_REF = t("Dialog.Message.WINDING_CALC_USE_CUSTOM_REF")
+        WINDING_CALC_LOAD_REF_ERROR = t("Dialog.Message.WINDING_CALC_LOAD_REF_ERROR")
+        WINDING_CALC_KEY_ERROR = t("Dialog.Message.WINDING_CALC_KEY_ERROR")
+        WINDING_CALC_COMPLETE = t("Dialog.Message.WINDING_CALC_COMPLETE")
 
 class FileDialog:
-    JSON = ('JSONファイル', '*.json')
-    PNG = ('PNG Image', '*.png')
-    TXT = ('Text File', '*.txt')
-    ALL = ('すべてのファイル', '*.*')
+    JSON = (t("FileDialog.JSON"), '*.json')
+    PNG = (t("FileDialog.PNG"), '*.png')
+    TXT = (t("FileDialog.TXT"), '*.txt')
+    ALL = (t("FileDialog.ALL"), '*.*')
 
 class SummaryReport:
-    TITLE = "QDDモーター性能サマリー"
-    PARAMS_HEADER = "使用したパラメータ:"
+    TITLE = t("SummaryReport.TITLE")
+    PARAMS_HEADER = t("SummaryReport.PARAMS_HEADER")

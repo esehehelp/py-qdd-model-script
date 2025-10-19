@@ -22,6 +22,11 @@ save_dpi = 300
 
 [analysis]
 # Number of points for the current and RPM axes in the analysis grid
-grid_points = 50
+grid_points = 100
 # Safety margin to add to the theoretical max RPM for the analysis range
-rpm_safety_margin = 1.1
+rpm_safety_margin = 1.0
+
+[language]
+# Set the UI language. Supported: "jp", "en"
+lang = "en"
+

@@ -1,10 +1,11 @@
 import tkinter as tk
 from tkinter import ttk
 from typing import Dict
+from ..i18n.translator import t
 
 class SummaryPanel(ttk.Labelframe):
     def __init__(self, master, layout, *args, **kwargs):
-        super().__init__(master, *args, text='サマリー', **kwargs)
+        super().__init__(master, *args, text=t("SummaryPanel.TITLE"), **kwargs)
         self.layout = layout
         self.vars: Dict[str, tk.StringVar] = {}
         self._build()

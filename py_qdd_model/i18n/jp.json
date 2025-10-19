@@ -1,0 +1,121 @@
+{
+  "WINDOW_TITLE": "QDDモーター特性モデリングツール",
+  "SummaryPanel": {
+    "TITLE": "サマリー"
+  },
+  "ParameterPanel": {
+    "TITLE": "モーターパラメータ"
+  },
+  "Plot": {
+    "X_AXIS_LABEL": "電流 [A]",
+    "Y_AXIS_LABEL": "回転数 [RPM]",
+    "Z_AXIS_LABEL": "グラフZ軸",
+    "PLOT_TITLE": "QDDモーター特性マップ: {}",
+    "Z_AXIS_MAP": {
+      "efficiency": "総合効率 [%]",
+      "torque": "トルク [Nm]",
+      "output_power": "出力パワー [W]",
+      "voltage": "必要電圧 [V]",
+      "total_loss": "全損失 [W]"
+    }
+  },
+  "Layout": {
+    "PARAM_DEFS": {
+      "groups": {
+        "motor": "モーター基本特性",
+        "thermal": "熱モデル",
+        "iron": "鉄損モデル",
+        "driver": "ドライバ損失モデル",
+        "gear": "ギア損失モデル",
+        "operating": "動作条件"
+      },
+      "labels": {
+        "kv": "KV値 [rpm/V]",
+        "phase_resistance": "一相あたり抵抗 (25℃) [Ohm]",
+        "phase_inductance": "一相あたりインダクタンス [uH]",
+        "pole_pairs": "極対数",
+        "wiring_type": "配線方式",
+        "continuous_current": "連続電流 [A]",
+        "peak_current": "ピーク電流 [A]",
+        "ambient_temperature": "周囲温度 [°C]",
+        "thermal_resistance": "モーター熱抵抗 [°C/W]",
+        "hysteresis_coeff": "ヒステリシス係数 [W/rpm]",
+        "eddy_current_coeff": "渦電流係数 [W/rpm^2]",
+        "driver_on_resistance": "ドライバON抵抗 [Ohm]",
+        "driver_fixed_loss": "ドライバ固定損失 [W]",
+        "gear_ratio": "減速比",
+        "gear_efficiency": "ギア効率",
+        "bus_voltage": "バス電圧 [V]"
+      }
+    },
+    "SUMMARY_LAYOUT": {
+      "groups": {
+        "peak": "ピーク性能",
+        "rated": "定格動作時 (連続電流)",
+        "envelope": "動作領域"
+      },
+      "labels": {
+        "max_eff": "最大総合効率",
+        "max_eff_point": "└ 回転数/電流/トルク",
+        "max_power": "最大出力パワー",
+        "max_power_point": "└ 回転数/電流/トルク",
+        "max_torque": "最大トルク",
+        "max_torque_point": "└ 回転数/電流",
+        "rated_eff": "最大効率",
+        "rated_point": "└ 回転数/トルク/パワー",
+        "max_rpm": "最大回転数 (電圧制限下)",
+        "max_current": "最大電流 (電圧制限下)"
+      }
+    }
+  },
+  "Buttons": {
+    "RUN": "計算＆プロット",
+    "LOAD_PRESET": "プリセット読込",
+    "SAVE_PRESET": "プリセット保存",
+    "SAVE_SUMMARY": "サマリー保存",
+    "SAVE_PLOT": "PNG保存",
+    "WINDING_CALC": "巻線計算"
+  },
+  "Dialog": {
+    "Title": {
+      "INPUT_ERROR": "入力エラー",
+      "SAVE_COMPLETE": "保存完了",
+      "LOAD_COMPLETE": "読込完了",
+      "LOAD_ERROR": "読込エラー",
+      "SAVE_ERROR": "保存エラー",
+      "WARNING": "警告",
+      "ERROR": "エラー",
+      "WINDING_CALC_COMPLETE": "巻線計算完了",
+      "WINDING_CALC_REF": "基準モーター",
+      "WINDING_CALC_INPUT": "入力"
+    },
+    "Message": {
+      "PARAMS_VALIDATION_FAILED": "パラメータ検証に失敗しました:\n{}",
+      "PRESET_SAVED": "プリセットを {} に保存しました。",
+      "PRESET_LOADED": "プリセットを読み込みました。",
+      "PRESET_LOAD_FAILED": "ファイルの読み込みに失敗しました。\n有効なJSONプリセットファイルを選択してください。\n\n詳細: {}",
+      "PLOT_SAVE_FAILED": "グラフの保存に失敗しました:\n{}",
+      "SUMMARY_SAVE_FAILED": "サマリーの保存に失敗しました:\n{}",
+      "PLOT_SAVED": "グラフを {} に保存しました。",
+      "SUMMARY_SAVED": "サマリーを {} に保存しました。",
+      "RUN_FIRST": "先に「計算＆プロット」を実行してください。",
+      "WINDING_CALC_MISSING_PARAMS": "計算の前に「KV値」と「ピーク電流」を設定してください。",
+      "WINDING_CALC_DENSITY_PROMPT": "目標とする電流密度 (A/mm²) を入力してください:",
+      "WINDING_CALC_USE_CUSTOM_REF": "カスタムの基準モータープリセットを使用しますか？\n\n（「いいえ」を選択すると、デフォルトの'medium'プロファイルが使用されます。）",
+      "WINDING_CALC_LOAD_REF_ERROR": "基準ファイルの読み込みに失敗しました: {} ",
+      "WINDING_CALC_KEY_ERROR": "パラメータに必要なキーがありません: {} ",
+      "INVALID_NUMERIC_VALUE": "パラメータ「{}」に不正な値が入力されています。\n数値（整数または小数）を入力してください。",
+      "WINDING_CALC_COMPLETE": "計算基準: {}\n\n更新されたパラメータ:\n  - 一相あたり抵抗: {:.4f} Ohm\n  - 一相あたりインダクタンス: {:.2f} uH\n\n参考値:\n  - 推定ワイヤ直径: {:.3f} mm\n  - 推定全長: {:.2f} m"
+    }
+  },
+  "FileDialog": {
+    "JSON": "JSONファイル",
+    "PNG": "PNG Image",
+    "TXT": "Text File",
+    "ALL": "すべてのファイル"
+  },
+  "SummaryReport": {
+    "TITLE": "QDDモーター性能サマリー",
+    "PARAMS_HEADER": "使用したパラメータ:"
+  }
+}
