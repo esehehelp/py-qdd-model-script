@@ -4,15 +4,16 @@ __pycache__/
 build/
 dist/
 wheels/
-*.egg-info
+*.egg-info/
 
 # Virtual environments
 .venv/
 .python-version
 uv.lock
-*.json
-py_qdd_model_refactor.md
-dist/
+
+# User-specific presets
+/my_motor.json
 all_sources.md
 combine_sources.py
 development_log.md
+py_qdd_model_refactor.md

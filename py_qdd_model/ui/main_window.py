@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import tkinter as tk
 from tkinter import ttk, messagebox
 import numpy as np
@@ -8,71 +9,17 @@ from ..ui.summary_panel import SummaryPanel
 from ..ui.plot_view import PlotView
 from ..utils.io import save_json, load_json, save_text
 from ..analysis.results_analyzer import ResultsAnalyzer
-
-Z_AXIS_MAP = {
-    '総合効率 [%]': 'efficiency',
-    'トルク [Nm]': 'torque',
-    '出力パワー [W]': 'output_power',
-    '必要電圧 [V]': 'voltage',
-    '全損失 [W]': 'total_loss'
-}
-
-SUMMARY_LAYOUT = {
-    'ピーク性能': [
-        ('最大総合効率', 'max_eff_val'),
-        ('└ 回転数/電流/トルク', 'max_eff_point'),
-        ('最大出力パワー', 'max_power_val'),
-        ('└ 回転数/電流/トルク', 'max_power_point'),
-        ('最大トルク', 'max_torque_val'),
-        ('└ 回転数/電流', 'max_torque_point')
-    ],
-    '定格動作時 (連続電流)': [
-        ('最大効率', 'rated_eff_val'),
-        ('└ 回転数/トルク/パワー', 'rated_point')
-    ],
-    '動作領域': [
-        ('最大回転数 (電圧制限下)', 'max_rpm_val'),
-        ('最大電流 (電圧制限下)', 'max_current_val')
-    ]
-}
+from . import constants as C_UI
+from .. import constants as C_MODEL
 
 class MainWindow(tk.Frame):
     def __init__(self, master=None):
         super().__init__(master)
         self.master = master
-        self.master.title('QDDモーター特性モデリングツール')
+        self.master.title(C_UI.WINDOW_TITLE)
         self.pack(fill='both', expand=True)
 
-        self.param_defs = {
-            'モーター基本特性': {
-                'kv': ('KV値 [rpm/V]', 100.0),
-                'phase_resistance': ('一相あたり抵抗 (25℃) [Ohm]', 0.1),
-                'phase_inductance': ('一相あたりインダクタンス [H]', 0.0001),
-                'pole_pairs': ('極対数', 7),
-                'wiring_type': ('配線方式', 'star', ['star','delta']),
-                'continuous_current': ('連続電流 [A]', 10.0),
-                'peak_current': ('ピーク電流 [A]', 30.0)
-            },
-            '熱モデル': {
-                'ambient_temperature': ('周囲温度 [°C]', 25.0),
-                'thermal_resistance': ('モーター熱抵抗 [°C/W]', 2.0)
-            },
-            '鉄損モデル': {
-                'hysteresis_coeff': ('ヒステリシス係数 [W/rpm]', 0.001),
-                'eddy_current_coeff': ('渦電流係数 [W/rpm^2]', 1e-7)
-            },
-            'ドライバ損失モデル': {
-                'driver_on_resistance': ('ドライバON抵抗 [Ohm]', 0.005),
-                'driver_fixed_loss': ('ドライバ固定損失 [W]', 2.0)
-            },
-            'ギア損失モデル': {
-                'gear_ratio': ('減速比', 9.0),
-                'gear_efficiency': ('ギア効率', 0.95)
-            },
-            '動作条件': {
-                'bus_voltage': ('バス電圧 [V]', 48.0)
-            }
-        }
+        self.param_defs = C_UI.PARAM_DEFS
 
         left = ttk.Frame(self, padding=10)
         left.pack(side='left', fill='y')
@@ -80,27 +27,27 @@ class MainWindow(tk.Frame):
         self.param_panel = ParameterPanel(left, self.param_defs)
         self.param_panel.pack(fill='x')
 
-        self.summary_panel = SummaryPanel(left, SUMMARY_LAYOUT)
+        self.summary_panel = SummaryPanel(left, C_UI.SUMMARY_LAYOUT)
         self.summary_panel.pack(fill='x', pady=8)
 
         btn_frame = ttk.Frame(left)
         btn_frame.pack(pady=8, fill='x')
-        ttk.Button(btn_frame, text='計算＆プロット', command=self.run_analysis).pack(side='left', padx=4)
-        ttk.Button(btn_frame, text='プリセット読込', command=self.load_preset).pack(side='left', padx=4)
-        ttk.Button(btn_frame, text='プリセット保存', command=self.save_preset).pack(side='left', padx=4)
+        ttk.Button(btn_frame, text=C_UI.RUN_BUTTON, command=self.run_analysis).pack(side='left', padx=4)
+        ttk.Button(btn_frame, text=C_UI.LOAD_PRESET_BUTTON, command=self.load_preset).pack(side='left', padx=4)
+        ttk.Button(btn_frame, text=C_UI.SAVE_PRESET_BUTTON, command=self.save_preset).pack(side='left', padx=4)
 
         # --- 出力機能 ---
         out_frame = ttk.Frame(left)
         out_frame.pack(pady=8, fill='x')
-        ttk.Button(out_frame, text='サマリー保存', command=self.save_summary).pack(side='left', padx=4)
-        ttk.Button(out_frame, text='PNG保存', command=self.save_plot).pack(side='left', padx=4)
+        ttk.Button(out_frame, text=C_UI.SAVE_SUMMARY_BUTTON, command=self.save_summary).pack(side='left', padx=4)
+        ttk.Button(out_frame, text=C_UI.SAVE_PLOT_BUTTON, command=self.save_plot).pack(side='left', padx=4)
 
         self.plot_view = PlotView(self)
 
         # Z軸選択
-        ttk.Label(left, text='グラフZ軸').pack()
-        self.z_var = tk.StringVar(value='総合効率 [%]')
-        ttk.Combobox(left, textvariable=self.z_var, values=list(Z_AXIS_MAP.keys()), width=20).pack()
+        ttk.Label(left, text=C_UI.Z_AXIS_LABEL).pack()
+        self.z_var = tk.StringVar(value=list(C_UI.Z_AXIS_MAP.keys())[0])
+        ttk.Combobox(left, textvariable=self.z_var, values=list(C_UI.Z_AXIS_MAP.keys()), width=20).pack()
 
         self.results = None
 
@@ -113,7 +60,7 @@ class MainWindow(tk.Frame):
             params = MotorParams(**raw)
             return params
         except Exception as e:
-            messagebox.showerror('入力エラー', f'パラメータ検証に失敗しました:\n{e}')
+            messagebox.showerror(C_UI.INPUT_ERROR_TITLE, C_UI.PARAMS_VALIDATION_FAILED_MSG.format(e))
             return None
 
     def run_analysis(self):
@@ -128,13 +75,13 @@ class MainWindow(tk.Frame):
             ke_line = model.ke
 
         if ke_line > 0:
-            motor_rpm_unloaded = params.bus_voltage / ke_line * (60 / (2 * np.pi))
+            motor_rpm_unloaded = params.bus_voltage / ke_line * C_MODEL.PhysicsConstants.RAD_PER_SEC_TO_RPM
             theoretical_max_rpm = motor_rpm_unloaded / params.gear_ratio
         else:
-            theoretical_max_rpm = 5000
+            theoretical_max_rpm = C_MODEL.ModelDefaults.FALLBACK_MAX_RPM
 
-        current_range = np.linspace(0.1, params.peak_current, 50)
-        rpm_range = np.linspace(0.1, theoretical_max_rpm * 1.1, 50)
+        current_range = np.linspace(0.1, params.peak_current, C_MODEL.ModelDefaults.ANALYSIS_POINTS)
+        rpm_range = np.linspace(0.1, theoretical_max_rpm * C_MODEL.ModelDefaults.RPM_SAFETY_MARGIN, C_MODEL.ModelDefaults.ANALYSIS_POINTS)
         I, RPM = np.meshgrid(current_range, rpm_range)
 
         results = model.analyze(I, RPM)
@@ -146,7 +93,8 @@ class MainWindow(tk.Frame):
         self.summary_panel.update(summary)
 
         # Plot
-        zkey = Z_AXIS_MAP[self.z_var.get()]
+        z_selection = self.z_var.get()
+        zkey = C_UI.Z_AXIS_MAP[z_selection]
         Z = results[zkey].copy()
         if zkey == 'efficiency':
             Z *= 100
@@ -154,7 +102,7 @@ class MainWindow(tk.Frame):
         valid_mask = results['voltage'] <= params.bus_voltage
         Z[~valid_mask] = np.nan
 
-        self.plot_view.plot(I, RPM, Z, '電流 [A]', '回転数 [RPM]', self.z_var.get(), f'QDDモーター特性マップ: {self.z_var.get()}')
+        self.plot_view.plot(I, RPM, Z, C_UI.X_AXIS_LABEL, C_UI.Y_AXIS_LABEL, z_selection, C_UI.PLOT_TITLE.format(z_selection))
 
         self.results = results
         self.last_result = results
@@ -164,7 +112,7 @@ class MainWindow(tk.Frame):
         from tkinter.filedialog import asksaveasfilename
         fp = asksaveasfilename(
             defaultextension='.json',
-            filetypes=[('JSONファイル', '*.json'), ('すべてのファイル', '*.*')]
+            filetypes=[C_UI.JSON_FILE_TYPE, C_UI.ALL_FILES_TYPE]
         )
         if not fp:
             return
@@ -174,58 +122,58 @@ class MainWindow(tk.Frame):
             return
 
         save_json(fp, raw)
-        messagebox.showinfo('保存完了', f'プリセットを {fp} に保存しました。')
+        messagebox.showinfo(C_UI.SAVE_COMPLETE_TITLE, C_UI.PRESET_SAVED_MSG.format(fp))
 
     def load_preset(self):
         from tkinter.filedialog import askopenfilename
         fp = askopenfilename(
-            filetypes=[('JSONファイル', '*.json'), ('すべてのファイル', '*.*')]
+            filetypes=[C_UI.JSON_FILE_TYPE, C_UI.ALL_FILES_TYPE]
         )
         if not fp:
             return
         try:
             data = load_json(fp)
             self.param_panel.set_params(data)
-            messagebox.showinfo('読込完了', 'プリセットを読み込みました。')
+            messagebox.showinfo(C_UI.LOAD_COMPLETE_TITLE, C_UI.PRESET_LOADED_MSG)
         except Exception as e:
-            messagebox.showerror('読込エラー', f'ファイルの読み込みに失敗しました。\n有効なJSONプリセットファイルを選択してください。\n\n詳細: {e}')
+            messagebox.showerror(C_UI.LOAD_ERROR_TITLE, C_UI.PRESET_LOAD_FAILED_MSG.format(e))
 
     def save_plot(self):
         if self.results is None:
-            messagebox.showwarning('警告', '先に「計算＆プロット」を実行してください。')
+            messagebox.showwarning(C_UI.WARNING_TITLE, C_UI.RUN_FIRST_MSG)
             return
         from tkinter.filedialog import asksaveasfilename
         fp = asksaveasfilename(
             defaultextension='.png',
-            filetypes=[('PNG Image', '*.png'), ('All files', '*.*')]
+            filetypes=[C_UI.PNG_FILE_TYPE, C_UI.ALL_FILES_TYPE]
         )
         if not fp:
             return
         try:
             self.plot_view.save_png(fp)
-            messagebox.showinfo('保存完了', f'グラフを {fp} に保存しました。')
+            messagebox.showinfo(C_UI.SAVE_COMPLETE_TITLE, C_UI.PLOT_SAVED_MSG.format(fp))
         except Exception as e:
-            messagebox.showerror('保存エラー', f'ファイルの保存に失敗しました:\n{e}')
+            messagebox.showerror(C_UI.SAVE_ERROR_TITLE, C_UI.PLOT_SAVE_FAILED_MSG.format(e))
 
     def save_summary(self):
         if self.results is None:
-            messagebox.showwarning('警告', '先に「計算＆プロット」を実行してください。')
+            messagebox.showwarning(C_UI.WARNING_TITLE, C_UI.RUN_FIRST_MSG)
             return
         from tkinter.filedialog import asksaveasfilename
         from ..utils.io import save_text
         fp = asksaveasfilename(
             defaultextension='.txt',
-            filetypes=[('Text File', '*.txt'), ('All files', '*.*')]
+            filetypes=[C_UI.TXT_FILE_TYPE, C_UI.ALL_FILES_TYPE]
         )
         if not fp:
             return
 
-        summary_text = "QDDモーター性能サマリー\n"
+        summary_text = f"{C_UI.SUMMARY_TITLE}\n"
         summary_text += "="*40 + "\n"
 
         summary_data = self.summary_panel.get_values()
 
-        for section, items in SUMMARY_LAYOUT.items():
+        for section, items in C_UI.SUMMARY_LAYOUT.items():
             summary_text += f"\n{section}\n"
             summary_text += "-"*len(section)*2 + "\n"
             for display, key in items:
@@ -234,7 +182,7 @@ class MainWindow(tk.Frame):
                 summary_text += f"{label:>22s}: {value}\n"
 
         summary_text += "\n" + "="*40 + "\n"
-        summary_text += "使用したパラメータ:\n\n"
+        summary_text += f"{C_UI.SUMMARY_PARAMS_HEADER}\n\n"
         params = self.param_panel.get_params()
         param_defs_flat = {k: v for section in self.param_defs.values() for k, v in section.items()}
 
@@ -244,6 +192,6 @@ class MainWindow(tk.Frame):
 
         try:
             save_text(fp, summary_text)
-            messagebox.showinfo('保存完了', f'サマリーを {fp} に保存しました。')
+            messagebox.showinfo(C_UI.SAVE_COMPLETE_TITLE, C_UI.SUMMARY_SAVED_MSG.format(fp))
         except Exception as e:
-            messagebox.showerror('保存エラー', f'ファイルの保存に失敗しました:\n{e}')
+            messagebox.showerror(C_UI.SAVE_ERROR_TITLE, C_UI.SUMMARY_SAVE_FAILED_MSG.format(e))
