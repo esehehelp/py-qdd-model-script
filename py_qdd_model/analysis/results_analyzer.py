@@ -1,5 +1,5 @@
 import numpy as np
-from typing import Dict, Tuple, Optional, Any
+from typing import Dict, Tuple, Optional
 import numpy.typing as npt
 from ..schema import MotorParams
 

@@ -16,6 +16,7 @@ DEFAULT_SETTINGS = {
         "figure_size_y": 8,
         "display_dpi": 100,
         "save_dpi": 300,
+        "downsample_factor": 3
     },
     "analysis": {
         "grid_points": 50,

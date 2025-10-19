@@ -19,6 +19,8 @@ figure_size_y = 8
 display_dpi = 100
 # DPI for saved PNG files
 save_dpi = 300
+# Factor to downsample plot data for faster display (e.g., 3 means plot every 3rd point)
+downsample_factor = 3
 
 [analysis]
 # Number of points for the current and RPM axes in the analysis grid

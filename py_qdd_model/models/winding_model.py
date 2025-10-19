@@ -8,35 +8,35 @@ BUILTIN_PROFILES: Dict[str, Dict[str, Any]] = {
         "kv": 3000.0,
         "peak_current": 10.0,
         "phase_resistance": 0.2,
-        "phase_inductance": 30.0
+        "phase_inductance": 0.04
     },
     "small": {
         "description": "Mid-size drone/robot joint motor",
         "kv": 800.0,
         "peak_current": 20.0,
         "phase_resistance": 0.15,
-        "phase_inductance": 70.0
+        "phase_inductance": 0.07
     },
     "medium": {
         "description": "Default QDD-style robot actuator",
         "kv": 100.0,
         "peak_current": 30.0,
         "phase_resistance": 0.1,
-        "phase_inductance": 100.0
+        "phase_inductance": 0.1
     },
     "large": {
         "description": "Large robot actuator / e-bike hub motor",
         "kv": 50.0,
         "peak_current": 60.0,
         "phase_resistance": 0.05,
-        "phase_inductance": 150.0
+        "phase_inductance": 0.2
     },
     "max": {
         "description": "Very large direct drive motor",
         "kv": 20.0,
         "peak_current": 150.0,
         "phase_resistance": 0.02,
-        "phase_inductance": 200.0
+        "phase_inductance": 0.3
     }
 }
 

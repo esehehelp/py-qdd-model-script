@@ -19,6 +19,7 @@ from ..models import winding_model as winding_calculator
 from . import constants as C_UI
 from .. import constants as C_MODEL
 from ..utils.config import settings
+from ..i18n.translator import t
 
 class MainWindow(tk.Frame):
     def __init__(self, master=None):
@@ -61,6 +62,10 @@ class MainWindow(tk.Frame):
 
         self.results = None
 
+        # Status bar
+        self.status_var = tk.StringVar(value="")
+        ttk.Label(left, textvariable=self.status_var, anchor='w').pack(side='bottom', fill='x', pady=5)
+
     def _get_params_validated(self):
         raw = self.param_panel.get_params()
         if raw is None:
@@ -95,6 +100,10 @@ class MainWindow(tk.Frame):
         current_range = np.linspace(0.1, params.peak_current, settings["analysis"]["grid_points"])
         rpm_range = np.linspace(0.1, theoretical_max_rpm * settings["analysis"]["rpm_safety_margin"], settings["analysis"]["grid_points"])
         
+        # Update status: Calculating
+        self.status_var.set(t("Dialog.Message.STATUS_CALCULATING"))
+        self.master.update_idletasks()
+
         # Run the analysis in parallel
         # We pass a copy of params because the model will modify it (inductance conversion)
         results = run_parallel_analysis(params.copy(deep=True), current_range, rpm_range)
@@ -108,6 +117,10 @@ class MainWindow(tk.Frame):
         summary = analyzer.calculate_summary()
         self.summary_panel.update(summary)
 
+        # Update status: Plotting
+        self.status_var.set(t("Dialog.Message.STATUS_PLOTTING"))
+        self.master.update_idletasks()
+
         # Plot
         z_selection = self.z_var.get()
         zkey = C_UI.Plot.Z_AXIS_MAP[z_selection]
@@ -120,9 +133,9 @@ class MainWindow(tk.Frame):
 
         self.plot_view.plot(I, RPM, Z, C_UI.Plot.X_AXIS_LABEL, C_UI.Plot.Y_AXIS_LABEL, z_selection, C_UI.Plot.PLOT_TITLE.format(z_selection))
 
-        self.last_result = results
-        # self.model is no longer a single instance, so we nullify it.
-        self.model = None
+        # Clear status
+        self.status_var.set("")
+        self.master.update_idletasks()
 
     def run_winding_calculation(self):
         target_params = self.param_panel.get_params()

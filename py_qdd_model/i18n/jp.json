@@ -99,6 +99,8 @@
       "PLOT_SAVED": "グラフを {} に保存しました。",
       "SUMMARY_SAVED": "サマリーを {} に保存しました。",
       "RUN_FIRST": "先に「計算＆プロット」を実行してください。",
+      "STATUS_CALCULATING": "計算中...",
+      "STATUS_PLOTTING": "プロット中...",
       "WINDING_CALC_MISSING_PARAMS": "計算の前に「KV値」と「ピーク電流」を設定してください。",
       "WINDING_CALC_DENSITY_PROMPT": "目標とする電流密度 (A/mm²) を入力してください:",
       "WINDING_CALC_USE_CUSTOM_REF": "カスタムの基準モータープリセットを使用しますか？\n\n（「いいえ」を選択すると、デフォルトの'medium'プロファイルが使用されます。）",

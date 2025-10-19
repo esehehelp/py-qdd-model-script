@@ -1,7 +1,7 @@
 import numpy as np
 import os
 import multiprocessing
-from typing import Dict, List, Any, Tuple
+from typing import Dict, List
 
 from ..schema import MotorParams
 from ..models.motor_model import MotorModel

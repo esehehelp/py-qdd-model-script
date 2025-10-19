@@ -99,6 +99,8 @@
       "PLOT_SAVED": "Plot saved to {}.",
       "SUMMARY_SAVED": "Summary saved to {}.",
       "RUN_FIRST": "Please run \"Calculate & Plot\" first.",
+      "STATUS_CALCULATING": "Calculating...",
+      "STATUS_PLOTTING": "Plotting...",
       "WINDING_CALC_MISSING_PARAMS": "Please set 'KV Rating' and 'Peak Current' before calculation.",
       "WINDING_CALC_DENSITY_PROMPT": "Enter Target Current Density (A/mm²):",
       "WINDING_CALC_USE_CUSTOM_REF": "Use a custom reference motor preset file?\n\n(If not, a default 'medium' profile will be used.)",

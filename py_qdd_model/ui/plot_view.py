@@ -16,7 +16,8 @@ class PlotView:
     def plot(self, X, Y, Z, xlabel, ylabel, zlabel, title):
         self.fig.clear()
         self.ax = self.fig.add_subplot(111, projection='3d')
-        plot_surface(self.ax, X, Y, Z, xlabel, ylabel, zlabel, title)
+        downsample_factor = settings["plot"]["downsample_factor"]
+        plot_surface(self.ax, X, Y, Z, xlabel, ylabel, zlabel, title, downsample_factor=downsample_factor)
         self.canvas.draw()
 
     def save_png(self, filepath: str):
