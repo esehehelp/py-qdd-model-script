@@ -1,5 +1,7 @@
 import numpy as np
 import pytest
+from pydantic import ValidationError
+from py_qdd_model.models.base_loss import LossModel
 from py_qdd_model.models.copper_loss import CopperLossModel
 from py_qdd_model.models.iron_loss import IronLossModel
 from py_qdd_model.schema import MotorParams, ElectricalParams, WindingParams, MagnetParams, GeometricParams, ThermalParams, DriverParams, GearParams, SimulationParams
@@ -11,13 +13,28 @@ def test_copper_star():
     assert np.isclose(m.calculate_loss(10, 0.1), 3 * 100 * 0.1)
 
 def test_iron_loss():
-    import numpy as np
     m = IronLossModel(0.001, 1e-7, pole_pairs=7)
     rpm = np.array([1000.0])
-    Bmax = np.array([0.3])
-    val = m.calculate_loss(rpm, Bmax)
+    
+    # Test with non-zero Bmax
+    Bmax_non_zero = np.array([0.3])
+    val = m.calculate_loss(rpm, Bmax_non_zero)
     assert val.shape == (1,)
     assert np.all(val > 0)
+
+    # Test with zero Bmax, loss should be zero
+    Bmax_zero = np.array([0.0])
+    val_zero = m.calculate_loss(rpm, Bmax_zero)
+    assert val_zero.shape == (1,)
+    assert np.all(val_zero == 0)
+
+def test_base_loss_model_abstract():
+    """Tests that the LossModel cannot be instantiated without implementing calculate_loss."""
+    with pytest.raises(TypeError, match="Can't instantiate abstract class"):
+        class IncompleteLossModel(LossModel):
+            pass
+        IncompleteLossModel()
+
 
 @pytest.fixture
 def default_model():
@@ -193,3 +210,74 @@ def test_motor_model_inductance_conversion():
     
     expected_h = 150e-6
     assert model.p.winding.phase_inductance == pytest.approx(expected_h)
+
+def test_winding_params_validation():
+    """Tests validation for WindingParams."""
+    with pytest.raises(ValidationError, match='peak_current must be >= continuous_current'):
+        WindingParams(
+            phase_resistance=0.1,
+            phase_inductance=100.0,
+            continuous_current=20.0,
+            peak_current=10.0,  # Invalid
+            wire_diameter=0.5,
+            turns_per_coil=50,
+        )
+
+def test_gear_params_validation():
+    """Tests validation for GearParams."""
+    with pytest.raises(ValidationError, match='gear_efficiency must be'):
+        GearParams(gear_ratio=9.0, gear_efficiency=1.1) # Invalid > 1
+    
+    with pytest.raises(ValidationError, match='gear_efficiency must be'):
+        GearParams(gear_ratio=9.0, gear_efficiency=0.0) # Invalid <= 0
+
+    # Valid case
+    gp = GearParams(gear_ratio=9.0, gear_efficiency=1.0)
+    assert gp.gear_efficiency == 1.0
+
+def test_zero_ke_edge_case(default_model):
+    """Tests the edge case where Ke is zero or near-zero."""
+    # A very high KV results in a very low Ke
+    default_model.p.electrical.kv = 1e9 
+    model = MotorModel(default_model.p)
+
+    assert model.ke == pytest.approx(0, abs=1e-8)
+
+    # Ensure analysis runs without division by zero errors
+    I = np.linspace(0.1, model.p.winding.peak_current, 5)
+    # The RPM range should now be based on the fallback
+    expected_rpm_range = np.linspace(0.1, C.ModelDefaults.FALLBACK_MAX_RPM * 1.0, 5)
+    
+    Ig, Rg = np.meshgrid(I, expected_rpm_range)
+    res = model.analyze(Ig, Rg)
+
+    # Check that the results are valid and have the correct shape
+    assert 'efficiency' in res and res['efficiency'].shape == Ig.shape
+    assert np.all(np.isfinite(res['torque']))
+
+def test_geometric_params_validation():
+    """Tests validation for GeometricParams."""
+    with pytest.raises(ValidationError, match='motor_outer_diameter must be greater than motor_inner_diameter'):
+        GeometricParams(
+            motor_outer_diameter=50.0,
+            motor_inner_diameter=60.0,  # Invalid
+            motor_length=25,
+            slot_number=12,
+        )
+
+    with pytest.raises(ValidationError, match='motor_outer_diameter must be greater than motor_inner_diameter'):
+        GeometricParams(
+            motor_outer_diameter=50.0,
+            motor_inner_diameter=50.0,  # Invalid (equal)
+            motor_length=25,
+            slot_number=12,
+        )
+
+    # Valid case
+    gp = GeometricParams(
+        motor_outer_diameter=60.0,
+        motor_inner_diameter=50.0,
+        motor_length=25,
+        slot_number=12,
+    )
+    assert gp.motor_outer_diameter > gp.motor_inner_diameter

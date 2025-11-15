@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 from typing import Literal
 from enum import Enum
 
@@ -47,6 +47,12 @@ class GeometricParams(BaseModel):
     slot_depth: float = Field(5.0, gt=0, description="Depth of the stator slots in mm.")
     slot_top_width: float = Field(2.0, gt=0, description="Width of the slot opening in mm.")
     slot_bottom_width: float = Field(4.0, gt=0, description="Width of the slot bottom in mm.")
+
+    @model_validator(mode='after')
+    def check_diameters(self) -> 'GeometricParams':
+        if self.motor_outer_diameter <= self.motor_inner_diameter:
+            raise ValueError('motor_outer_diameter must be greater than motor_inner_diameter')
+        return self
 
 
 class ElectricalParams(BaseModel):
@@ -99,3 +105,37 @@ class MotorParams(BaseModel):
     driver: DriverParams = Field(..., description="Motor driver parameters.")
     gear: GearParams = Field(..., description="Gearbox parameters.")
     simulation: SimulationParams = Field(..., description="Simulation settings.")
+
+
+# --- Application Settings Models ---
+
+class WindowSettings(BaseModel):
+    initial_size: str = "1280x900"
+
+class LayoutSettings(BaseModel):
+    main_padding: int = 10
+    widget_pady: int = 8
+    button_padx: int = 4
+    combobox_width: int = 20
+
+class PlotSettings(BaseModel):
+    figure_size_x: int = 8
+    figure_size_y: int = 8
+    display_dpi: int = 100
+    save_dpi: int = 300
+    downsample_factor: int = Field(3, ge=1)
+
+class AnalysisSettings(BaseModel):
+    grid_points: int = Field(50, ge=10)
+    rpm_safety_margin: float = Field(1.1, gt=0)
+
+class LanguageSettings(BaseModel):
+    lang: Literal["jp", "en"] = "jp"
+
+class AppSettings(BaseModel):
+    """A comprehensive container for all application settings."""
+    window: WindowSettings = Field(default_factory=WindowSettings)
+    layout: LayoutSettings = Field(default_factory=LayoutSettings)
+    plot: PlotSettings = Field(default_factory=PlotSettings)
+    analysis: AnalysisSettings = Field(default_factory=AnalysisSettings)
+    language: LanguageSettings = Field(default_factory=LanguageSettings)

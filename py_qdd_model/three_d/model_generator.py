@@ -117,8 +117,14 @@ def generate_motor_model(params: MotorParams, output_dir: Path):
     output_path = output_dir / f"{params.name.replace(' ', '_')}_model.step"
 
     # Export as STEP file
-    assembly.save(str(output_path), "STEP")
-    print(f"Generated STEP file: {output_path}")
+    try:
+        assembly.save(str(output_path), "STEP")
+        print(f"Generated STEP file: {output_path}")
+    except Exception as e:
+        print(f"Error: Failed to save the STEP file to {output_path}. Reason: {e}")
+        # Re-raise the exception so the calling process knows something went wrong.
+        raise
+
 
     return output_path
 

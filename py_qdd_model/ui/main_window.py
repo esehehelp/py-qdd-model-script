@@ -7,6 +7,8 @@ from pydantic import ValidationError
 from typing import Dict, Any
 from tkinter.filedialog import askdirectory, asksaveasfilename, askopenfilename
 import multiprocessing
+import threading
+import queue
 
 from ..schema import MotorParams
 from ..models.motor_model import MotorModel
@@ -29,12 +31,13 @@ class MainWindow(tk.Frame):
         super().__init__(master)
         self.master = master
         self.master.title(C_UI.WINDOW_TITLE)
-        self.master.geometry(settings["window"]["initial_size"])
+        self.master.geometry(settings.window.initial_size)
         self.pack(fill='both', expand=True)
 
+        self.results_queue = queue.Queue()
         self.param_defs = C_UI.Layout.get_param_defs()
 
-        left = ttk.Frame(self, padding=settings["layout"]["main_padding"])
+        left = ttk.Frame(self, padding=settings.layout.main_padding)
         left.pack(side='left', fill='y', anchor='n')
 
         # Create a scrollable frame for the parameter panel
@@ -64,28 +67,29 @@ class MainWindow(tk.Frame):
         param_canvas.pack(side="left", fill="both", expand=True)
 
         self.summary_panel = SummaryPanel(left, C_UI.Layout.SUMMARY_LAYOUT)
-        self.summary_panel.pack(fill='x', pady=settings["layout"]["widget_pady"])
+        self.summary_panel.pack(fill='x', pady=settings.layout.widget_pady)
 
         btn_frame = ttk.Frame(left)
-        btn_frame.pack(pady=settings["layout"]["widget_pady"], fill='x')
-        ttk.Button(btn_frame, text=C_UI.Buttons.RUN, command=self.run_analysis).pack(side='left', padx=settings["layout"]["button_padx"])
-        ttk.Button(btn_frame, text=C_UI.Buttons.LOAD_PRESET, command=self.load_preset).pack(side='left', padx=settings["layout"]["button_padx"])
-        ttk.Button(btn_frame, text=C_UI.Buttons.SAVE_PRESET, command=self.save_preset).pack(side='left', padx=settings["layout"]["button_padx"])
+        btn_frame.pack(pady=settings.layout.widget_pady, fill='x')
+        self.run_button = ttk.Button(btn_frame, text=C_UI.Buttons.RUN, command=self.run_analysis)
+        self.run_button.pack(side='left', padx=settings.layout.button_padx)
+        ttk.Button(btn_frame, text=C_UI.Buttons.LOAD_PRESET, command=self.load_preset).pack(side='left', padx=settings.layout.button_padx)
+        ttk.Button(btn_frame, text=C_UI.Buttons.SAVE_PRESET, command=self.save_preset).pack(side='left', padx=settings.layout.button_padx)
 
         out_frame = ttk.Frame(left)
-        out_frame.pack(pady=settings["layout"]["widget_pady"], fill='x')
-        ttk.Button(out_frame, text=C_UI.Buttons.SAVE_SUMMARY, command=self.save_summary).pack(side='left', padx=settings["layout"]["button_padx"])
-        ttk.Button(out_frame, text=C_UI.Buttons.SAVE_PLOT, command=self.save_plot).pack(side='left', padx=settings["layout"]["button_padx"])
-        ttk.Button(out_frame, text=C_UI.Buttons.GENERATE_3D_MODEL, command=self.generate_3d_model).pack(side='left', padx=settings["layout"]["button_padx"])
-        ttk.Button(out_frame, text=C_UI.Buttons.EXPORT_CSV_FUSION, command=self.export_csv_for_fusion).pack(side='left', padx=settings["layout"]["button_padx"])
+        out_frame.pack(pady=settings.layout.widget_pady, fill='x')
+        ttk.Button(out_frame, text=C_UI.Buttons.SAVE_SUMMARY, command=self.save_summary).pack(side='left', padx=settings.layout.button_padx)
+        ttk.Button(out_frame, text=C_UI.Buttons.SAVE_PLOT, command=self.save_plot).pack(side='left', padx=settings.layout.button_padx)
+        ttk.Button(out_frame, text=C_UI.Buttons.GENERATE_3D_MODEL, command=self.generate_3d_model).pack(side='left', padx=settings.layout.button_padx)
+        ttk.Button(out_frame, text=C_UI.Buttons.EXPORT_CSV_FUSION, command=self.export_csv_for_fusion).pack(side='left', padx=settings.layout.button_padx)
 
         self.plot_view = PlotView(self)
 
         z_axis_frame = ttk.Frame(left)
-        z_axis_frame.pack(pady=settings["layout"]["widget_pady"], fill='x')
+        z_axis_frame.pack(pady=settings.layout.widget_pady, fill='x')
         ttk.Label(z_axis_frame, text=C_UI.Plot.Z_AXIS_LABEL).pack(side='left')
         self.z_var = tk.StringVar(value=list(C_UI.Plot.Z_AXIS_MAP.keys())[0])
-        z_combo = ttk.Combobox(z_axis_frame, textvariable=self.z_var, values=list(C_UI.Plot.Z_AXIS_MAP.keys()), width=settings["layout"]["combobox_width"], state='readonly')
+        z_combo = ttk.Combobox(z_axis_frame, textvariable=self.z_var, values=list(C_UI.Plot.Z_AXIS_MAP.keys()), width=settings.layout.combobox_width, state='readonly')
         z_combo.pack(side='left', padx=5)
         z_combo.bind('<<ComboboxSelected>>', self.on_z_axis_change)
 
@@ -111,38 +115,58 @@ class MainWindow(tk.Frame):
         if params is None:
             return
 
-        temp_model = MotorModel(params)
-        if params.winding.wiring_type == 'star':
-            ke_line = temp_model.ke * np.sqrt(3)
-        else:
-            ke_line = temp_model.ke
-
-        if ke_line > 0:
-            motor_rpm_unloaded = params.simulation.bus_voltage / ke_line * C_MODEL.PhysicsConstants.RAD_PER_SEC_TO_RPM
-            theoretical_max_rpm = motor_rpm_unloaded / params.gear.gear_ratio
-        else:
-            theoretical_max_rpm = C_MODEL.ModelDefaults.FALLBACK_MAX_RPM
-
-        current_range = np.linspace(0.1, params.winding.peak_current, settings["analysis"]["grid_points"])
-        rpm_range = np.linspace(0.1, theoretical_max_rpm * settings["analysis"]["rpm_safety_margin"], settings["analysis"]["grid_points"])
-        
+        self.run_button.config(state="disabled")
         self.status_var.set(t("Dialog.Message.STATUS_CALCULATING"))
-        self.master.update_idletasks()
+        
+        thread = threading.Thread(target=self._worker_run_analysis, args=(params,))
+        thread.start()
+        
+        self.after(100, self._check_results_queue)
 
-        results = run_parallel_analysis(params.model_copy(deep=True), current_range, rpm_range)
-        self.results = results
+    def _worker_run_analysis(self, params: MotorParams):
+        try:
+            temp_model = MotorModel(params)
+            if params.winding.wiring_type == 'star':
+                ke_line = temp_model.ke * np.sqrt(3)
+            else:
+                ke_line = temp_model.ke
 
-        analyzer = ResultsAnalyzer(params, results, current_range)
-        summary = analyzer.calculate_summary()
-        self.summary_panel.update(summary)
+            if ke_line > 0:
+                motor_rpm_unloaded = params.simulation.bus_voltage / ke_line * C_MODEL.PhysicsConstants.RAD_PER_SEC_TO_RPM
+                theoretical_max_rpm = motor_rpm_unloaded / params.gear.gear_ratio
+            else:
+                theoretical_max_rpm = C_MODEL.ModelDefaults.FALLBACK_MAX_RPM
 
-        self.status_var.set(t("Dialog.Message.STATUS_PLOTTING"))
-        self.master.update_idletasks()
+            current_range = np.linspace(0.1, params.winding.peak_current, settings.analysis.grid_points)
+            rpm_range = np.linspace(0.1, theoretical_max_rpm * settings.analysis.rpm_safety_margin, settings.analysis.grid_points)
+            
+            results = run_parallel_analysis(params.model_copy(deep=True), current_range, rpm_range)
+            
+            analyzer = ResultsAnalyzer(params, results, current_range)
+            summary = analyzer.calculate_summary()
+            
+            self.results_queue.put(("success", (results, summary)))
+        except Exception as e:
+            self.results_queue.put(("error", e))
 
-        self.plot_current_view()
+    def _check_results_queue(self):
+        try:
+            status, data = self.results_queue.get_nowait()
 
-        self.status_var.set("")
-        self.master.update_idletasks()
+            if status == "success":
+                self.results, summary = data
+                self.summary_panel.update(summary)
+                self.status_var.set(t("Dialog.Message.STATUS_PLOTTING"))
+                self.plot_current_view()
+                self.status_var.set("")
+            elif status == "error":
+                messagebox.showerror(C_UI.Dialog.Title.ERROR, f"An error occurred during analysis:\n{data}")
+                self.status_var.set(t("Dialog.Message.STATUS_ERROR"))
+
+            self.run_button.config(state="normal")
+
+        except queue.Empty:
+            self.after(100, self._check_results_queue)
 
     def on_z_axis_change(self, event=None):
         self.plot_current_view()
@@ -164,7 +188,7 @@ class MainWindow(tk.Frame):
         valid_mask = self.results['voltage'] <= params.simulation.bus_voltage
         Z[~valid_mask] = np.nan
         
-        current_range = np.linspace(0.1, params.winding.peak_current, settings["analysis"]["grid_points"])
+        current_range = np.linspace(0.1, params.winding.peak_current, settings.analysis.grid_points)
         
         temp_model = MotorModel(params)
         if params.winding.wiring_type == 'star':
@@ -176,7 +200,7 @@ class MainWindow(tk.Frame):
             theoretical_max_rpm = motor_rpm_unloaded / params.gear.gear_ratio
         else:
             theoretical_max_rpm = C_MODEL.ModelDefaults.FALLBACK_MAX_RPM
-        rpm_range = np.linspace(0.1, theoretical_max_rpm * settings["analysis"]["rpm_safety_margin"], settings["analysis"]["grid_points"])
+        rpm_range = np.linspace(0.1, theoretical_max_rpm * settings.analysis.rpm_safety_margin, settings.analysis.grid_points)
         I, RPM = np.meshgrid(current_range, rpm_range)
 
         self.plot_view.plot(I, RPM, Z, C_UI.Plot.X_AXIS_LABEL, C_UI.Plot.Y_AXIS_LABEL, z_selection, C_UI.Plot.PLOT_TITLE.format(z_selection))

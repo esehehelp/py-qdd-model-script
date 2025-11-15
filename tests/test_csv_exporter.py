@@ -120,3 +120,29 @@ def test_export_csv_empty_description(base_motor_params, english_param_defs):
     params.description = ""
     csv_string = export_params_to_fusion_csv(params, english_param_defs)
     assert "description,," in csv_string # Empty description should result in empty expression and comment
+
+def test_export_csv_edge_cases(base_motor_params):
+    """Tests edge cases like missing keys in param_defs and malformed units."""
+    # param_defs with some keys missing and some malformed labels
+    partial_param_defs = {
+        "electrical": {
+            'kv': ("KV Rating [rpm/V]", 100.0),
+            # hysteresis_coeff is missing
+        },
+        "winding": {
+            'phase_resistance': ("Resistance Ohm", 0.1), # Unit not in brackets
+            'phase_inductance': ("Inductance", 100.0),   # No unit
+        },
+    }
+
+    csv_string = export_params_to_fusion_csv(base_motor_params, partial_param_defs)
+
+    # Test for a key completely missing from param_defs
+    # It should use the key name as the comment
+    assert "electrical_hysteresis_coeff,0.001,Unit: electrical_hysteresis_coeff" in csv_string
+
+    # Test for a label where the unit is not in brackets
+    assert "winding_phase_resistance,0.2,Unit: Resistance Ohm" in csv_string
+
+    # Test for a label with no unit
+    assert "winding_phase_inductance,150.0,Unit: Inductance" in csv_string

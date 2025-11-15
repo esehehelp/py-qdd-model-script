@@ -1,52 +1,53 @@
 import tomllib
-from typing import Dict, Any
+from typing import Any, Dict
+from ..schema import AppSettings
+from pydantic import ValidationError
 
-DEFAULT_SETTINGS = {
-    "window": {
-        "initial_size": "1280x900",
-    },
-    "layout": {
-        "main_padding": 10,
-        "widget_pady": 8,
-        "button_padx": 4,
-        "combobox_width": 20,
-    },
-    "plot": {
-        "figure_size_x": 8,
-        "figure_size_y": 8,
-        "display_dpi": 100,
-        "save_dpi": 300,
-        "downsample_factor": 3
-    },
-    "analysis": {
-        "grid_points": 50,
-        "rpm_safety_margin": 1.1,
-    },
-    "language": {
-        "lang": "jp"
-    }
-}
+def _deep_merge(source: Dict, destination: Dict) -> Dict:
+    """
+    Recursively merges source dict into destination dict.
+    """
+    for key, value in source.items():
+        if isinstance(value, dict):
+            # get node or create one
+            node = destination.setdefault(key, {})
+            _deep_merge(value, node)
+        else:
+            destination[key] = value
+    return destination
 
-def load_settings(path: str = "settings.toml") -> Dict[str, Any]:
+def load_settings(path: str = "settings.toml") -> AppSettings:
     """
-    Loads settings from a TOML file, providing default values for missing keys.
+    Loads settings from a TOML file, validates them against the AppSettings model,
+    and returns a type-safe settings object.
     """
-    settings = DEFAULT_SETTINGS.copy()
+    # Start with default settings by creating a model instance
+    default_settings_dict = AppSettings().model_dump()
+    
+    final_settings_dict = default_settings_dict
+
     try:
         with open(path, "rb") as f:
             user_settings = tomllib.load(f)
-            for section, keys in user_settings.items():
-                if section in settings:
-                    settings[section].update(keys)
-                else:
-                    settings[section] = keys
+            # Merge user settings into the default settings
+            final_settings_dict = _deep_merge(user_settings, default_settings_dict)
+
     except FileNotFoundError:
-        # File doesn't exist, use default settings
+        # File doesn't exist, use default settings, which is already the case
         pass
     except tomllib.TOMLDecodeError as e:
-        print(f"Warning: Could not parse settings.toml. Using default settings. Error: {e}")
+        print(f"Warning: Could not parse '{path}'. Using default settings. Error: {e}")
+        # Fallback to defaults
+        final_settings_dict = AppSettings().model_dump()
 
-    return settings
+    try:
+        # Validate the final merged dictionary
+        settings_obj = AppSettings.model_validate(final_settings_dict)
+        return settings_obj
+    except ValidationError as e:
+        print(f"Warning: Settings validation failed. Using default settings. Error: {e}")
+        # On validation failure, return a default AppSettings instance
+        return AppSettings()
 
 # Create a single instance to be imported by other modules
 settings = load_settings()

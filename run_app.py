@@ -6,7 +6,7 @@ from py_qdd_model.utils.config import settings
 
 if __name__ == '__main__':
     # Set the language before creating any UI components
-    translator.set_language(settings["language"]["lang"])
+    translator.set_language(settings.language.lang)
     
     plt.rcParams['font.family'] = 'Meiryo'
     root = tk.Tk()

@@ -32,7 +32,7 @@ class Translator:
             return default or key
 
 # Create a singleton instance of the translator
-_translator = Translator(settings["language"]["lang"])
+_translator = Translator(settings.language.lang)
 
 # Global translation function
 def t(key: str, default: str = "") -> Any:

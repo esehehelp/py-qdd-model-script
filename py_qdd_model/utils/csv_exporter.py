@@ -4,35 +4,35 @@ from ..schema import MotorParams
 # from ..ui import constants as C_UI # 削除
 # from ..i18n.translator import t # 削除
 
-def _flatten_params(params: MotorParams, param_defs: dict): # param_defs を引数に戻す
+def _flatten_params(params: MotorParams, param_defs: dict):
     """
     Flattens the nested Pydantic model into a list of tuples for CSV export.
-    (parameter_name, value, unit)
+    (parameter_name, value, comment_string)
     """
     flat_list = []
     
-    # param_defs から直接ラベルを取得する
+    # Create a flat map from schema key to the label string for easier lookup
     param_labels = {}
-    for group_key, group_fields in param_defs.items():
-        # group_key が翻訳キーの場合とそうでない場合があるため、t() を使う
-        # ただし、C_UI.Layout.PARAM_DEFS の構造上、group_key は文字列リテラルか t() の結果
-        # ここでは、group_fields の中の各keyに対応するラベルを取得する
-        for key, (label, default_value, *_) in group_fields.items():
+    for group_fields in param_defs.values():
+        for key, (label, *_) in group_fields.items():
             param_labels[key] = label
 
     def recurse(model_part, prefix=""):
         for field_name, value in model_part:
+            param_name = f"{prefix}{field_name}"
+            
             if isinstance(value, (int, float, str, bool)):
-                param_name = f"{prefix}{field_name}"
-                unit = param_labels.get(field_name, "") # ラベル全体を単位として使用
-                flat_list.append((param_name, value, unit))
+                # Try to find the label in param_defs, otherwise use the key name itself
+                label = param_labels.get(field_name, param_name)
+                comment = f"Unit: {label}"
+                flat_list.append((param_name, value, comment))
             elif hasattr(value, 'model_dump'): # It's a nested Pydantic model
-                recurse(value, prefix=f"{field_name}_")
+                recurse(value, prefix=f"{param_name}_")
 
     recurse(params)
     return flat_list
 
-def export_params_to_fusion_csv(params: MotorParams, param_defs: dict) -> str: # param_defs を引数に戻す
+def export_params_to_fusion_csv(params: MotorParams, param_defs: dict) -> str:
     """
     Exports motor parameters to a CSV string compatible with Fusion 360.
     
@@ -43,7 +43,7 @@ def export_params_to_fusion_csv(params: MotorParams, param_defs: dict) -> str: #
     Returns:
         A string containing the CSV data.
     """
-    flat_params = _flatten_params(params, param_defs) # param_defs を渡す
+    flat_params = _flatten_params(params, param_defs)
     
     output = io.StringIO(newline='')
     writer = csv.writer(output)
@@ -52,16 +52,18 @@ def export_params_to_fusion_csv(params: MotorParams, param_defs: dict) -> str: #
     writer.writerow(["Parameter Name", "Expression", "Comment"])
     
     # Write data
-    for name, value, unit in flat_params:
+    for name, value, comment in flat_params:
         # Fusion 360 doesn't like bools, convert to 0/1
         if isinstance(value, bool):
             value = 1 if value else 0
         
-        # We don't have units for all params, so the comment may be empty
-        comment = f"Unit: {unit}" if unit else ""
-        writer.writerow([name, value, comment])
+        # Handle empty description separately to avoid "Unit: " prefix
+        if name == 'description' and not value:
+            writer.writerow([name, "", ""])
+        else:
+            writer.writerow([name, value, comment])
         
-    return output.getvalue().replace('\r', '') # \r を削除
+    return output.getvalue().replace('\r', '')
 
 if __name__ == '__main__':
     # Example usage for direct testing
