@@ -1,0 +1,7 @@
+{
+  "name": "AWG20",
+  "diameter_bare": 0.812,
+  "diameter_coated": 0.863,
+  "resistance_per_km": 33.31,
+  "max_temp": 200
+}

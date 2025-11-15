@@ -1,0 +1,7 @@
+{
+  "name": "N42SH",
+  "remanence_br": 1.3,
+  "coercivity_hc": 980.0,
+  "temp_coeff_br": -0.11,
+  "max_temp": 150
+}

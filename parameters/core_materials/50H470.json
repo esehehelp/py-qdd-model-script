@@ -1,0 +1,12 @@
+{
+  "name": "50H470",
+  "description": "Standard non-oriented electrical steel.",
+  "density": 7650,
+  "conductivity": 2.0e6,
+  "loss_coefficients": {
+    "kh": 153.0,
+    "kc": 1.8,
+    "ke": 0.65
+  },
+  "bh_curve_path": "bh_curves/50H470.csv"
+}
