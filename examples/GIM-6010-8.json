@@ -1,18 +1,48 @@
 {
-    "kv": 98.4,
-    "phase_resistance": 0.107,
-    "phase_inductance": 1.24e-07,
-    "pole_pairs": 14.0,
-    "wiring_type": "star",
-    "continuous_current": 10.5,
-    "peak_current": 25.0,
-    "ambient_temperature": 25.0,
-    "thermal_resistance": 0.8,
-    "hysteresis_coeff": 0.0002,
-    "eddy_current_coeff": 1e-07,
-    "driver_on_resistance": 0.01,
-    "driver_fixed_loss": 3.0,
-    "gear_ratio": 8.0,
-    "gear_efficiency": 0.63,
-    "bus_voltage": 24.0
+    "name": "My Motor",
+    "description": "A custom motor model.",
+    "motor_type": "inner_rotor",
+    "electrical": {
+        "kv": 100.0,
+        "hysteresis_coeff": 0.001,
+        "eddy_current_coeff": 1e-07
+    },
+    "winding": {
+        "phase_resistance": 0.1,
+        "phase_inductance": 100.0,
+        "wiring_type": "star",
+        "continuous_current": 10.0,
+        "peak_current": 30.0,
+        "wire_diameter": 0.5,
+        "turns_per_coil": 50.0
+    },
+    "magnets": {
+        "pole_pairs": 7.0,
+        "use_halbach_array": false,
+        "magnet_width": 10.0,
+        "magnet_thickness": 3.0,
+        "magnet_length": 20.0,
+        "remanence_br": 1.2
+    },
+    "geometry": {
+        "motor_outer_diameter": 60.0,
+        "motor_inner_diameter": 30.0,
+        "motor_length": 25.0,
+        "slot_number": 12.0
+    },
+    "thermal": {
+        "ambient_temperature": 25.0,
+        "thermal_resistance": 2.0
+    },
+    "driver": {
+        "driver_on_resistance": 0.005,
+        "driver_fixed_loss": 2.0
+    },
+    "gear": {
+        "gear_ratio": 9.0,
+        "gear_efficiency": 0.95
+    },
+    "simulation": {
+        "bus_voltage": 48.0
+    }
 }

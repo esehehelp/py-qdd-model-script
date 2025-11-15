@@ -9,15 +9,15 @@ def run_from_preset(preset_path: str, out_json: str = 'results.json'):
         data = json.load(f)
     params = MotorParams(**data)
     model = MotorModel(params)
-    current_range = np.linspace(0.1, params.peak_current, 50)
+    current_range = np.linspace(0.1, params.winding.peak_current, 50)
     # estimate theoretical max rpm similarly as GUI
-    if params.wiring_type == 'star':
+    if params.winding.wiring_type == 'star':
         ke_line = model.ke * np.sqrt(3)
     else:
         ke_line = model.ke
     if ke_line > 0:
-        motor_rpm_unloaded = params.bus_voltage / ke_line * (60 / (2 * 3.141592653589793))
-        theoretical_max_rpm = motor_rpm_unloaded / params.gear_ratio
+        motor_rpm_unloaded = params.simulation.bus_voltage / ke_line * (60 / (2 * 3.141592653589793))
+        theoretical_max_rpm = motor_rpm_unloaded / params.gear.gear_ratio
     else:
         theoretical_max_rpm = 5000
     rpm_range = np.linspace(0.1, theoretical_max_rpm * 1.1, 50)

@@ -1,18 +1,48 @@
 {
+  "name": "Default Inner Rotor Motor",
+  "description": "A default example motor configuration based on the old schema.",
+  "motor_type": "inner_rotor",
+  "electrical": {
     "kv": 100.0,
+    "hysteresis_coeff": 0.001,
+    "eddy_current_coeff": 1e-07
+  },
+  "winding": {
     "phase_resistance": 0.1,
     "phase_inductance": 0.0001,
-    "pole_pairs": 7.0,
     "wiring_type": "star",
     "continuous_current": 10.0,
     "peak_current": 30.0,
+    "wire_diameter": 0.5,
+    "turns_per_coil": 50
+  },
+  "magnets": {
+    "pole_pairs": 7,
+    "use_halbach_array": false,
+    "magnet_width": 10,
+    "magnet_thickness": 3,
+    "magnet_length": 20,
+    "remanence_br": 1.2
+  },
+  "geometry": {
+    "motor_outer_diameter": 60,
+    "motor_inner_diameter": 30,
+    "motor_length": 25,
+    "slot_number": 12
+  },
+  "thermal": {
     "ambient_temperature": 25.0,
-    "thermal_resistance": 2.0,
-    "hysteresis_coeff": 0.001,
-    "eddy_current_coeff": 1e-07,
+    "thermal_resistance": 2.0
+  },
+  "driver": {
     "driver_on_resistance": 0.005,
-    "driver_fixed_loss": 2.0,
+    "driver_fixed_loss": 2.0
+  },
+  "gear": {
     "gear_ratio": 9.0,
-    "gear_efficiency": 0.95,
+    "gear_efficiency": 0.95
+  },
+  "simulation": {
     "bus_voltage": 48.0
+  }
 }

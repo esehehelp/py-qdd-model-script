@@ -24,36 +24,61 @@ class Plot:
     }
 
 class Layout:
-    PARAM_DEFS = {
-        t("Layout.PARAM_DEFS.groups.motor"): {
-            'kv': (t("Layout.PARAM_DEFS.labels.kv"), 100.0),
-            'phase_resistance': (t("Layout.PARAM_DEFS.labels.phase_resistance"), 0.1),
-            'phase_inductance': (t("Layout.PARAM_DEFS.labels.phase_inductance"), 100.0),
-            'pole_pairs': (t("Layout.PARAM_DEFS.labels.pole_pairs"), 7),
-            'wiring_type': (t("Layout.PARAM_DEFS.labels.wiring_type"), 'star', ['star','delta']),
-            'continuous_current': (t("Layout.PARAM_DEFS.labels.continuous_current"), 10.0),
-            'peak_current': (t("Layout.PARAM_DEFS.labels.peak_current"), 30.0)
-        },
-        t("Layout.PARAM_DEFS.groups.thermal"): {
-            'ambient_temperature': (t("Layout.PARAM_DEFS.labels.ambient_temperature"), 25.0),
-            'thermal_resistance': (t("Layout.PARAM_DEFS.labels.thermal_resistance"), 2.0)
-        },
-        t("Layout.PARAM_DEFS.groups.iron"): {
-            'hysteresis_coeff': (t("Layout.PARAM_DEFS.labels.hysteresis_coeff"), 0.001),
-            'eddy_current_coeff': (t("Layout.PARAM_DEFS.labels.eddy_current_coeff"), 1e-7)
-        },
-        t("Layout.PARAM_DEFS.groups.driver"): {
-            'driver_on_resistance': (t("Layout.PARAM_DEFS.labels.driver_on_resistance"), 0.005),
-            'driver_fixed_loss': (t("Layout.PARAM_DEFS.labels.driver_fixed_loss"), 2.0)
-        },
-        t("Layout.PARAM_DEFS.groups.gear"): {
-            'gear_ratio': (t("Layout.PARAM_DEFS.labels.gear_ratio"), 9.0),
-            'gear_efficiency': (t("Layout.PARAM_DEFS.labels.gear_efficiency"), 0.95)
-        },
-        t("Layout.PARAM_DEFS.groups.operating"): {
-            'bus_voltage': (t("Layout.PARAM_DEFS.labels.bus_voltage"), 48.0)
+    @staticmethod
+    def get_param_defs():
+        return {
+            t("Layout.PARAM_DEFS.groups.general"): {
+                'name': (t("Layout.PARAM_DEFS.labels.name"), "My Motor"),
+                'description': (t("Layout.PARAM_DEFS.labels.description"), "A custom motor model."),
+                'motor_type': (t("Layout.PARAM_DEFS.labels.motor_type"), 'inner_rotor', ['inner_rotor', 'outer_rotor', 'axial_flux']),
+            },
+            "electrical": {
+                'kv': (t("Layout.PARAM_DEFS.labels.kv"), 100.0),
+                'hysteresis_coeff': (t("Layout.PARAM_DEFS.labels.hysteresis_coeff"), 0.001),
+                'eddy_current_coeff': (t("Layout.PARAM_DEFS.labels.eddy_current_coeff"), 1e-7),
+            },
+            "winding": {
+                'phase_resistance': (t("Layout.PARAM_DEFS.labels.phase_resistance"), 0.1),
+                'phase_inductance': (t("Layout.PARAM_DEFS.labels.phase_inductance"), 100.0),
+                'wiring_type': (t("Layout.PARAM_DEFS.labels.wiring_type"), 'star', ['star', 'delta']),
+                'continuous_current': (t("Layout.PARAM_DEFS.labels.continuous_current"), 10.0),
+                'peak_current': (t("Layout.PARAM_DEFS.labels.peak_current"), 30.0),
+                'wire_diameter': (t("Layout.PARAM_DEFS.labels.wire_diameter"), 0.5),
+                'turns_per_coil': (t("Layout.PARAM_DEFS.labels.turns_per_coil"), 50),
+            },
+            "magnets": {
+                'pole_pairs': (t("Layout.PARAM_DEFS.labels.pole_pairs"), 7),
+                'use_halbach_array': (t("Layout.PARAM_DEFS.labels.use_halbach_array"), False),
+                'magnet_width': (t("Layout.PARAM_DEFS.labels.magnet_width"), 10.0),
+                'magnet_thickness': (t("Layout.PARAM_DEFS.labels.magnet_thickness"), 3.0),
+                'magnet_length': (t("Layout.PARAM_DEFS.labels.magnet_length"), 20.0),
+                'remanence_br': (t("Layout.PARAM_DEFS.labels.remanence_br"), 1.2),
+            },
+            "geometry": {
+                'motor_outer_diameter': (t("Layout.PARAM_DEFS.labels.motor_outer_diameter"), 60.0),
+                'motor_inner_diameter': (t("Layout.PARAM_DEFS.labels.motor_inner_diameter"), 30.0),
+                'motor_length': (t("Layout.PARAM_DEFS.labels.motor_length"), 25.0),
+                'slot_number': (t("Layout.PARAM_DEFS.labels.slot_number"), 12),
+                'slot_depth': (t("Layout.PARAM_DEFS.labels.slot_depth"), 5.0),
+                'slot_top_width': (t("Layout.PARAM_DEFS.labels.slot_top_width"), 2.0),
+                'slot_bottom_width': (t("Layout.PARAM_DEFS.labels.slot_bottom_width"), 4.0),
+            },
+            "thermal": {
+                'ambient_temperature': (t("Layout.PARAM_DEFS.labels.ambient_temperature"), 25.0),
+                'thermal_resistance': (t("Layout.PARAM_DEFS.labels.thermal_resistance"), 2.0),
+            },
+            "driver": {
+                'driver_on_resistance': (t("Layout.PARAM_DEFS.labels.driver_on_resistance"), 0.005),
+                'driver_fixed_loss': (t("Layout.PARAM_DEFS.labels.driver_fixed_loss"), 2.0),
+            },
+            "gear": {
+                'gear_ratio': (t("Layout.PARAM_DEFS.labels.gear_ratio"), 9.0),
+                'gear_efficiency': (t("Layout.PARAM_DEFS.labels.gear_efficiency"), 0.95),
+            },
+            "simulation": {
+                'bus_voltage': (t("Layout.PARAM_DEFS.labels.bus_voltage"), 48.0),
+            }
         }
-    }
     SUMMARY_LAYOUT = {
         t("Layout.SUMMARY_LAYOUT.groups.peak"): [
             (t("Layout.SUMMARY_LAYOUT.labels.max_eff"), 'max_eff_val'),
@@ -80,6 +105,8 @@ class Buttons:
     SAVE_SUMMARY = t("Buttons.SAVE_SUMMARY")
     SAVE_PLOT = t("Buttons.SAVE_PLOT")
     WINDING_CALC = t("Buttons.WINDING_CALC")
+    GENERATE_3D_MODEL = t("Buttons.GENERATE_3D_MODEL")
+    EXPORT_CSV_FUSION = t("Buttons.EXPORT_CSV_FUSION")
 
 class Dialog:
     class Title:

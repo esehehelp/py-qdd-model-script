@@ -35,6 +35,11 @@ class Translator:
 _translator = Translator(settings["language"]["lang"])
 
 # Global translation function
-def t(key: str) -> Any:
+def t(key: str, default: str = "") -> Any:
     """A convenient global function to access the translator."""
-    return _translator.get(key)
+    return _translator.get(key, default=default)
+
+def set_language(lang_code: str):
+    """Sets the global translator to a new language."""
+    global _translator
+    _translator = Translator(lang_code)

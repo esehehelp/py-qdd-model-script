@@ -8,7 +8,7 @@ class ResultsAnalyzer:
         self.p = params
         self.r = results
         self.current_range = current_range
-        self.valid_mask = self.r['voltage'] <= self.p.bus_voltage
+        self.valid_mask = self.r['voltage'] <= self.p.simulation.bus_voltage
 
     def _get_summary_point(self, key: str) -> Tuple[Optional[float], Optional[Tuple[int, int]]]:
         if not np.any(self.valid_mask):
@@ -45,7 +45,7 @@ class ResultsAnalyzer:
             summary['max_torque_point'] = f"{self.r['rpm'][torque_coords]:.0f} RPM / {self.r['current'][torque_coords]:.1f} A"
 
         # 4. Rated (Continuous) Operation
-        cont_idx = np.argmin(np.abs(self.current_range - self.p.continuous_current))
+        cont_idx = np.argmin(np.abs(self.current_range - self.p.winding.continuous_current))
         rated_mask = self.valid_mask[:, cont_idx]
         rated_eff = np.where(rated_mask, self.r['efficiency'][:, cont_idx], np.nan)
         if np.any(~np.isnan(rated_eff)):

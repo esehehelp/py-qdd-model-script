@@ -22,14 +22,22 @@
   "Layout": {
     "PARAM_DEFS": {
       "groups": {
-        "motor": "モーター基本特性",
+        "general": "モーター基本特性",
         "thermal": "熱モデル",
         "iron": "鉄損モデル",
         "driver": "ドライバ損失モデル",
         "gear": "ギア損失モデル",
-        "operating": "動作条件"
+        "operating": "動作条件",
+        "magnets": "磁石モデル",
+        "geometry": "ジオメトリ",
+        "winding": "巻線パラメータ",
+        "electrical": "電気パラメータ",
+        "simulation": "シミュレーション設定"
       },
       "labels": {
+        "name": "名前",
+        "description": "説明",
+        "motor_type": "モータータイプ",
         "kv": "KV値 [rpm/V]",
         "phase_resistance": "一相あたり抵抗 (25℃) [Ohm]",
         "phase_inductance": "一相あたりインダクタンス [uH]",
@@ -37,6 +45,17 @@
         "wiring_type": "配線方式",
         "continuous_current": "連続電流 [A]",
         "peak_current": "ピーク電流 [A]",
+        "wire_diameter": "ワイヤ直径 [mm]",
+        "turns_per_coil": "コイル巻数",
+        "use_halbach_array": "ハルバッハ配列",
+        "magnet_width": "磁石幅 [mm]",
+        "magnet_thickness": "磁石厚さ [mm]",
+        "magnet_length": "磁石長さ [mm]",
+        "remanence_br": "残留磁束密度 (Br) [T]",
+        "motor_outer_diameter": "モーター外径 [mm]",
+        "motor_inner_diameter": "モーター内径 [mm]",
+        "motor_length": "モーター長さ [mm]",
+        "slot_number": "スロット数",
         "ambient_temperature": "周囲温度 [°C]",
         "thermal_resistance": "モーター熱抵抗 [°C/W]",
         "hysteresis_coeff": "ヒステリシス係数 [W/rpm]",
@@ -45,7 +64,10 @@
         "driver_fixed_loss": "ドライバ固定損失 [W]",
         "gear_ratio": "減速比",
         "gear_efficiency": "ギア効率",
-        "bus_voltage": "バス電圧 [V]"
+        "bus_voltage": "バス電圧 [V]",
+        "slot_depth": "スロット深さ [mm]",
+        "slot_top_width": "スロット開口部幅 [mm]",
+        "slot_bottom_width": "スロット底部幅 [mm]"
       }
     },
     "SUMMARY_LAYOUT": {
@@ -74,7 +96,9 @@
     "SAVE_PRESET": "プリセット保存",
     "SAVE_SUMMARY": "サマリー保存",
     "SAVE_PLOT": "PNG保存",
-    "WINDING_CALC": "巻線計算"
+    "WINDING_CALC": "巻線計算",
+    "GENERATE_3D_MODEL": "3Dモデル生成",
+    "EXPORT_CSV_FUSION": "Fusion用CSV出力"
   },
   "Dialog": {
     "Title": {

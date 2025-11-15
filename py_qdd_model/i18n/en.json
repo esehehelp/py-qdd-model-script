@@ -22,14 +22,22 @@
   "Layout": {
     "PARAM_DEFS": {
       "groups": {
-        "motor": "Motor Basic Properties",
+        "general": "Motor Basic Properties",
         "thermal": "Thermal Model",
         "iron": "Iron Loss Model",
         "driver": "Driver Loss Model",
         "gear": "Gear Loss Model",
-        "operating": "Operating Conditions"
+        "operating": "Operating Conditions",
+        "magnets": "Magnet Model",
+        "simulation": "Simulation Settings",
+        "geometry": "Geometry Parameters",
+        "winding": "Winding Parameters",
+        "electrical": "Electrical Parameters"
       },
       "labels": {
+        "name": "Name",
+        "description": "Description",
+        "motor_type": "Motor Type",
         "kv": "KV Rating [rpm/V]",
         "phase_resistance": "Phase Resistance (25°C) [Ohm]",
         "phase_inductance": "Phase Inductance [uH]",
@@ -37,6 +45,17 @@
         "wiring_type": "Wiring Type",
         "continuous_current": "Continuous Current [A]",
         "peak_current": "Peak Current [A]",
+        "wire_diameter": "Wire Diameter [mm]",
+        "turns_per_coil": "Turns per Coil",
+        "use_halbach_array": "Use Halbach Array",
+        "magnet_width": "Magnet Width [mm]",
+        "magnet_thickness": "Magnet Thickness [mm]",
+        "magnet_length": "Magnet Length [mm]",
+        "remanence_br": "Remanence Br [T]",
+        "motor_outer_diameter": "Motor Outer Diameter [mm]",
+        "motor_inner_diameter": "Motor Inner Diameter [mm]",
+        "motor_length": "Motor Length [mm]",
+        "slot_number": "Slot Number",
         "ambient_temperature": "Ambient Temperature [°C]",
         "thermal_resistance": "Motor Thermal Resistance [°C/W]",
         "hysteresis_coeff": "Hysteresis Coefficient [W/rpm]",
@@ -45,7 +64,10 @@
         "driver_fixed_loss": "Driver Fixed Loss [W]",
         "gear_ratio": "Gear Ratio",
         "gear_efficiency": "Gear Efficiency",
-        "bus_voltage": "Bus Voltage [V]"
+        "bus_voltage": "Bus Voltage [V]",
+        "slot_depth": "Slot Depth [mm]",
+        "slot_top_width": "Slot Top Width [mm]",
+        "slot_bottom_width": "Slot Bottom Width [mm]"
       }
     },
     "SUMMARY_LAYOUT": {
@@ -74,7 +96,9 @@
     "SAVE_PRESET": "SavePreset",
     "SAVE_SUMMARY": "Save Summary",
     "SAVE_PLOT": "Save PNG",
-    "WINDING_CALC": "Winding Calc"
+    "WINDING_CALC": "Winding Calc",
+    "GENERATE_3D_MODEL": "Generate 3D Model",
+    "EXPORT_CSV_FUSION": "Export CSV for Fusion"
   },
   "Dialog": {
     "Title": {
